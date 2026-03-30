@@ -1,8 +1,8 @@
 import { WSServer } from './ws_server.js';
+import { RestServer } from './rest_server.js';
 import { ClawDB } from './db.js';
 import { Config } from './types.js';
 import { readFileSync } from 'fs';
-import { join } from 'path';
 
 const DEFAULT_CONFIG: Config = {
   port: parseInt(process.env.PORT || '8080'),
@@ -50,14 +50,24 @@ async function main() {
   const db = new ClawDB(config.dataDir);
   console.log('[ClawLink] Database initialized');
 
-  // Start WebSocket server
+  // Initialize WebSocket server (this also creates TopicsManager and MemoryPool internally)
   const wsServer = new WSServer(config, db);
+  
+  // Start REST API server with access to db, topics, memory
+  const restServer = new RestServer(config, db, wsServer.getTopicsManager(), wsServer.getMemoryPool());
+  restServer.start();
+  
   console.log('[ClawLink] Server started successfully');
+  console.log('');
+  console.log('[ClawLink] Endpoints:');
+  console.log(`  WebSocket: ws://${config.host}:${config.port}`);
+  console.log(`  REST API:  http://${config.host}:${config.restPort}`);
   console.log('');
 
   // Graceful shutdown
   const shutdown = () => {
     console.log('[ClawLink] Shutting down...');
+    restServer.close();
     wsServer.close();
     process.exit(0);
   };

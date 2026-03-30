@@ -354,6 +354,14 @@ export class WSServer {
     };
   }
 
+  getTopicsManager(): TopicsManager {
+    return this.topics;
+  }
+
+  getMemoryPool(): MemoryPool {
+    return this.memory;
+  }
+
   close(): void {
     if (this.pingInterval) {
       clearInterval(this.pingInterval);
