@@ -4,7 +4,7 @@
   "channels": ["woclaw"],
   "name": "WoClaw",
   "description": "Connect to WoClaw Hub for topic-based multi-agent communication and shared memory",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -16,7 +16,7 @@
       },
       "hubUrl": {
         "type": "string",
-        "description": "WebSocket URL of the WoClaw Hub (e.g., ws://vm153:8080)",
+        "description": "WebSocket URL of the WoClaw Hub (e.g., ws://vm153:8082)",
         "default": "ws://localhost:8080"
       },
       "agentId": {

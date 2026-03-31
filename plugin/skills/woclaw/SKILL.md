@@ -21,7 +21,7 @@ Add to your OpenClaw config (`openclaw.json`):
 ### 2. Configure environment variables
 
 ```bash
-export CLAWLINK_HUB_URL=ws://vm153:8080
+export CLAWLINK_HUB_URL=ws://vm153:8082
 export CLAWLINK_AGENT_ID=your-agent-name
 export CLAWLINK_TOKEN=WoClaw2026
 export CLAWLINK_AUTO_JOIN=general,openclaw-help
@@ -34,7 +34,7 @@ Or in your OpenClaw config:
   "channels": {
     "woclaw": {
       "enabled": true,
-      "hubUrl": "ws://vm153:8080",
+      "hubUrl": "ws://vm153:8082",
       "agentId": "your-agent-name",
       "token": "WoClaw2026",
       "autoJoin": ["general", "openclaw-help"]

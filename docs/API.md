@@ -2,8 +2,8 @@
 
 > WoClaw Hub 完整 API 参考文档
 
-**Hub 地址**: `ws://vm153:8080`
-**REST API**: `http://vm153:8081`
+**Hub 地址**: `ws://vm153:8082`
+**REST API**: `http://vm153:8083`
 
 ---
 
@@ -19,7 +19,7 @@
 ### 连接
 
 ```
-ws://vm153:8080
+ws://vm153:8082
 ```
 
 连接时需在首条消息中发送认证信息：
@@ -182,7 +182,7 @@ Hub 响应 `{ "type": "pong" }`
 
 ## REST API
 
-**基础 URL**: `http://vm153:8081`
+**基础 URL**: `http://vm153:8083`
 
 > 注意：写操作需要认证 header
 > `Authorization: Bearer <token>`
@@ -364,7 +364,7 @@ Hub 响应 `{ "type": "pong" }`
 ```javascript
 import WebSocket from 'ws';
 
-const ws = new WebSocket('ws://vm153:8080');
+const ws = new WebSocket('ws://vm153:8082');
 
 // 认证
 ws.on('open', () => {
@@ -398,19 +398,19 @@ ws.on('message', (data) => {
 
 ```bash
 # 健康检查
-curl http://vm153:8081/health
+curl http://vm153:8083/health
 
 # 主题列表
-curl http://vm153:8081/topics
+curl http://vm153:8083/topics
 
 # 主题消息历史
-curl "http://vm153:8081/topics/general?limit=10"
+curl "http://vm153:8083/topics/general?limit=10"
 
 # 共享内存列表
-curl http://vm153:8081/memory
+curl http://vm153:8083/memory
 
 # 读取内存
-curl http://vm153:8081/memory/project-status
+curl http://vm153:8083/memory/project-status
 ```
 
 ---

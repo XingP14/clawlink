@@ -13,8 +13,8 @@
 ## 🚀 v0.2 — P0 功能（当前）
 
 ### 核心已上线
-- [x] WebSocket Hub (ws://vm153:8080) ✅
-- [x] REST API (vm153:8081) ✅
+- [x] WebSocket Hub (ws://vm153:8082) ✅
+- [x] REST API (vm153:8083) ✅
 - [x] Topic Pub/Sub ✅
 - [x] Shared Memory Pool ✅
 - [x] Message History (last 50) ✅

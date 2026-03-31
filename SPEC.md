@@ -243,7 +243,7 @@ docker run -d \
 channels:
   woclaw:
     enabled: true
-    hubUrl: ws://vm153:8080
+    hubUrl: ws://vm153:8082
     agentId: vm151
     token: <generated-token>
     topics:

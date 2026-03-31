@@ -47,13 +47,13 @@ $TARGET "docker rm $CONTAINER_NAME 2>/dev/null || true"
 echo "[4/5] Starting new container..."
 $TARGET "cd $REPO_DIR && docker run -d \
     --name $CONTAINER_NAME \
-    -p 8080:8080 \
-    -p 8081:8081 \
+    -p 8082:8082 \
+    -p 8083:8083 \
     -v ${REPO_DIR}/data:/data \
     -e AUTH_TOKEN=$AUTH_TOKEN \
     -e HOST=0.0.0.0 \
-    -e PORT=8080 \
-    -e REST_PORT=8081 \
+    -e PORT=8082 \
+    -e REST_PORT=8083 \
     -e DATA_DIR=/data \
     --restart unless-stopped \
     woclaw/hub:latest"
@@ -71,8 +71,8 @@ echo ""
 $TARGET "docker ps --filter name=$CONTAINER_NAME"
 echo ""
 echo "Hub endpoints:"
-echo "  WebSocket: ws://$SSH_HOST:8080"
-echo "  REST API:  http://$SSH_HOST:8081"
+echo "  WebSocket: ws://$SSH_HOST:8082"
+echo "  REST API:  http://$SSH_HOST:8083"
 echo ""
 echo "Test with:"
-echo "  HUB_URL=ws://$SSH_HOST:8080 AUTH_TOKEN=$AUTH_TOKEN node test.ts"
+echo "  HUB_URL=ws://$SSH_HOST:8082 AUTH_TOKEN=$AUTH_TOKEN node test.ts"
