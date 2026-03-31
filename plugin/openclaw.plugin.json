@@ -1,0 +1,61 @@
+{
+  "id": "clawlink",
+  "name": "ClawLink",
+  "description": "Connect to ClawLink Hub for topic-based multi-agent communication and shared memory",
+  "version": "0.1.0",
+  "channels": ["clawlink"],
+  "skills": ["./skills/clawlink"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable the ClawLink channel"
+      },
+      "hubUrl": {
+        "type": "string",
+        "description": "WebSocket URL of the ClawLink Hub (e.g., ws://vm153:8080)",
+        "default": "ws://localhost:8080"
+      },
+      "agentId": {
+        "type": "string",
+        "description": "Unique agent identifier for this OpenClaw instance"
+      },
+      "token": {
+        "type": "string",
+        "description": "Authentication token for the ClawLink Hub"
+      },
+      "autoJoin": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Topics to automatically join on startup"
+      },
+      "topics": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Alias for autoJoin (topics to subscribe to)"
+      }
+    },
+    "required": ["hubUrl", "agentId", "token"]
+  },
+  "uiHints": {
+    "hubUrl": {
+      "label": "Hub URL",
+      "placeholder": "ws://vm153:8080",
+      "help": "WebSocket endpoint of your ClawLink Hub"
+    },
+    "agentId": {
+      "label": "Agent ID",
+      "placeholder": "my-agent",
+      "help": "Unique name that identifies this agent in topics"
+    },
+    "token": {
+      "label": "Hub Token",
+      "placeholder": "ClawLink2026",
+      "sensitive": true,
+      "help": "Authentication token (get from Hub administrator)"
+    }
+  }
+}
