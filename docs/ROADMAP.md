@@ -104,7 +104,7 @@
 | v0.1 | 2026-03-30 | 项目立项、Hub 部署 ✅ |
 | v0.2 | 2026-03-31 | REST API、npm 发布、跨框架集成 ✅ |
 | v0.3 | 待定 | MCP Bridge、Hook 系统 |
-| v0.4 | 待定 | 多框架共享记忆 |
+| v0.4 | 2026-03-31 | 多框架共享记忆（Tags + TTL）✅ 核心实现 |
 | v0.5 | 待定 | 生态集成、ClawHub |
 | v1.0 | 待定 | Graph Memory、Federation |
 

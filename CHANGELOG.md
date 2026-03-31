@@ -2,6 +2,24 @@
 
 All notable changes to WoClaw will be documented in this file.
 
+## [0.2.0] - 2026-03-31
+
+### Added (v0.4 - Memory Tags + TTL)
+- **Memory Tags**: `memory.write(key, value, tags)` — tag memory entries with labels (`project`, `fact`, `decision`, `config`)
+- **Memory TTL**: `memory.write(key, value, tags, ttl)` — set expiry time in seconds (0 = permanent)
+- **Auto-Expiry**: `memory.read()` and `memory.getAll()` automatically filter expired entries
+- **Tag Queries**: REST `GET /memory/tags/:tag` and `GET /memory?tags=filter`
+- **REST POST /memory**: Now accepts `{ key, value, tags, ttl }` for full v0.4 support
+- **WebSocket memory_write**: Now accepts optional `tags` and `ttl` parameters
+- **Backwards Compatible**: Old DB entries auto-migrate on load (adds empty tags/ttl)
+- `cleanupExpired()` for periodic maintenance
+
+### Changed
+- `DBMemory` interface: `tags: string[]`, `ttl: number`, `expireAt: number`
+- `memory_value` WS response now includes `tags`, `ttl`, `expireAt`
+- `memory_update` WS broadcast now includes `tags`, `ttl`, `expireAt`
+- `DBMemory` updated in `types.ts`, `db.ts`, `memory.ts`, `ws_server.ts`, `rest_server.ts`
+
 ## [0.1.5] - 2026-03-31
 
 ### Added

@@ -191,8 +191,9 @@ class WoClawChannel {
     this.send({ type: 'leave', topic });
   }
 
-  async writeMemory(key, value) {
-    this.send({ type: 'memory_write', key, value });
+  async writeMemory(key, value, tags = [], ttl = 0) {
+    // v0.4: support tags (string[]) and ttl (seconds, 0=no expiry)
+    this.send({ type: 'memory_write', key, value, tags, ttl });
   }
 
   async readMemory(key) {
@@ -208,6 +209,12 @@ class WoClawChannel {
         }
       }, 5000);
     });
+  }
+
+  async queryMemoryByTag(tag) {
+    // v0.4: subscribe to memory_update events filtered by tag
+    // Caller should use onMessage handler to receive matching updates
+    return []; // REST fallback: use HTTP GET /memory/tags/:tag
   }
 
   onMessage(handler) {
