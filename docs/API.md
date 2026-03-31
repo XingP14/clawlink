@@ -100,26 +100,30 @@ Hub 使用双向 JSON 消息协议。
 
 Hub 会将消息广播给该主题所有连接（不包括发送者）。
 
-##### 写入共享内存 `memory`
+##### 写入共享内存 `memory_write`
 
 ```json
 {
-  "type": "memory",
-  "action": "write",
+  "type": "memory_write",
   "key": "project-status",
-  "value": "v1.0 released"
+  "value": "v1.0 released",
+  "tags": ["project"],
+  "ttl": 86400
 }
 ```
 
-##### 读取共享内存 `memory`
+Hub 响应 `memory_update` 广播给所有订阅者（v0.4）。
+
+##### 读取共享内存 `memory_read`
 
 ```json
 {
-  "type": "memory",
-  "action": "read",
+  "type": "memory_read",
   "key": "project-status"
 }
 ```
+
+Hub 响应 `memory_value`：
 
 ##### 心跳 `ping`
 
@@ -158,14 +162,36 @@ Hub 响应 `{ "type": "pong" }`
 
 `event` 可选值：`join` | `leave`
 
-##### 内存读取结果 `memory`
+##### 内存读取结果 `memory_value`
 
 ```json
 {
-  "type": "memory",
-  "action": "read",
+  "type": "memory_value",
   "key": "project-status",
-  "value": "v1.0 released"
+  "value": "v1.0 released",
+  "tags": ["project"],
+  "ttl": 86400,
+  "expireAt": 1775084985223,
+  "updatedAt": 1774998585223,
+  "updatedBy": "agent-1"
+}
+```
+
+##### 内存更新广播 `memory_update`
+
+Hub 主动广播给所有连接的客户端，当任意 agent 通过 WS 写入内存时触发（v0.4）。
+
+```json
+{
+  "type": "memory_update",
+  "action": "write",
+  "key": "project-status",
+  "value": "v1.0 released",
+  "tags": ["project"],
+  "ttl": 86400,
+  "expireAt": 1775084985223,
+  "updatedAt": 1774998585223,
+  "updatedBy": "p14"
 }
 ```
 
@@ -259,13 +285,44 @@ Hub 响应 `{ "type": "pong" }`
 
 ### 共享内存列表 `GET /memory`
 
-无需认证。
+无需认证。支持按标签过滤（v0.4）。
+
+**Query 参数：**
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `tags` | string | 逗号分隔的标签名，返回包含任一标签的内存（v0.4）|
 
 **响应 200：**
 
 ```json
 {
-  "keys": ["project-status", "deploy-info"]
+  "memory": [
+    {
+      "key": "project-status",
+      "value": "v1.0 released",
+      "tags": ["project"],
+      "ttl": 86400,
+      "expireAt": 1775084985223,
+      "updatedAt": 1774998585223,
+      "updatedBy": "rest-api"
+    }
+  ]
+}
+```
+
+---
+
+### 按标签查询内存 `GET /memory/tags/<tag>`
+
+无需认证。返回指定标签下的所有内存项（v0.4）。
+
+**响应 200：**
+
+```json
+{
+  "tag": "project",
+  "count": 2,
+  "memory": [...]
 }
 ```
 
@@ -281,7 +338,11 @@ Hub 响应 `{ "type": "pong" }`
 {
   "key": "project-status",
   "value": "v1.0 released",
-  "updatedAt": 1743440000000
+  "tags": [],
+  "ttl": 0,
+  "expireAt": 0,
+  "updatedAt": 1743440000000,
+  "updatedBy": "agent-1"
 }
 ```
 
@@ -295,26 +356,41 @@ Hub 响应 `{ "type": "pong" }`
 
 ---
 
-### 写入内存值 `POST /memory/<key>`
+### 写入内存值 `POST /memory`
 
 **Headers:**
 - `Authorization: Bearer <token>`
 - `Content-Type: application/json`
 
-**Body:**
+**Body（v0.4）：**
 
 ```json
 {
-  "value": "new value"
+  "key": "project-status",
+  "value": "v1.0 released",
+  "tags": ["project", "decision"],
+  "ttl": 86400
 }
 ```
+
+| 字段 | 必填 | 说明 |
+|------|------|------|
+| `key` | 是 | 内存键名 |
+| `value` | 否 | 值（默认为空字符串）|
+| `tags` | 否 | 标签数组（v0.4）|
+| `ttl` | 否 | 过期时间，秒（0=永不过期）（v0.4）|
 
 **响应 200：**
 
 ```json
 {
   "key": "project-status",
-  "value": "new value"
+  "value": "v1.0 released",
+  "tags": ["project", "decision"],
+  "ttl": 86400,
+  "expireAt": 1775084985223,
+  "updatedAt": 1774998585223,
+  "updatedBy": "rest-api"
 }
 ```
 
@@ -337,8 +413,16 @@ Hub 响应 `{ "type": "pong" }`
 
 ```json
 {
-  "deleted": true,
+  "success": true,
   "key": "project-status"
+}
+```
+
+**响应 404：**
+
+```json
+{
+  "error": "Key not found"
 }
 ```
 
