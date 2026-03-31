@@ -120,6 +120,6 @@ docker push clawlink/hub:0.1.0
 - [x] Fix npm publish readiness (ESM, dist structure) - 2026-03-31
 - [ ] npm login (`npm login`)  
 - [ ] Publish to npm (`npm publish`)
-- [ ] Test local installation (`npm install @clawlink/openclaw-plugin`)
+- [ ] Test local installation (`npm install @xingp14/clawlink`)
 - [ ] Publish to ClawHub (`clawhub sync`)
 - [ ] Set up auto-sync GitHub Actions
