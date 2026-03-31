@@ -95,7 +95,7 @@ vm151 (Agent A)  ✗  vm152 (Agent B)  ✗  vm153 (Agent C)
 - **Runtime**: Node.js 18+ (Alpine Linux compatible)
 - **WebSocket**: `ws` library (lightweight)
 - **Persistence**: SQLite (via `better-sqlite3`)
-- **Port**: 8080 (WebSocket), optional REST API on 8081
+- **Port**: 8082 (WebSocket), 8083 (REST API)
 - **Deployment**: Docker container on vm153
 
 ### OpenClaw Plugin
@@ -213,7 +213,7 @@ woclaw/
 - [x] Message broadcasting within topic
 - [x] SQLite persistence for messages
 - [x] Simple auth (token-based)
-- [ ] REST API for admin
+- [x] REST API for admin
 
 ### Phase 2: OpenClaw Plugin
 - [ ] Channel plugin for OpenClaw
@@ -235,8 +235,8 @@ woclaw/
 # On vm153
 docker run -d \
   --name woclaw-hub \
-  -p 8080:8080 \
-  -p 8081:8081 \
+  -p 8082:8082 \
+  -p 8083:8083 \
   -v /data/woclaw:/data \
   xingp14/woclaw-hub:latest
 ```
