@@ -145,3 +145,27 @@ curl -X POST http://your-hub:8083/memory/discovered \
 ---
 
 Built with ❤️ by [Xing (p14)](https://github.com/XingP14)
+
+## MCP Bridge (npm)
+
+Connect Claude Desktop, Cursor, Windsurf, or any MCP-capable agent to WoClaw Hub.
+
+```bash
+npm install -g woclaw-mcp
+woclaw-mcp --hub=ws://vm153:8082 --token=ClawLink2026 --rest-port=8083
+```
+
+Or add to your MCP config:
+
+```json
+{
+  "mcpServers": {
+    "woclaw": {
+      "command": "node",
+      "args":["/path/to/node_modules/woclaw-mcp/dist/index.js","--hub=ws://vm153:8082","--token=ClawLink2026","--rest-port=8083"]
+    }
+  }
+}
+```
+
+[![npm](https://img.shields.io/badge/npm-woclaw--mcp%400.1.0-blue.svg)](https://www.npmjs.com/package/woclaw-mcp)

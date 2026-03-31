@@ -38,7 +38,7 @@
 - [ ] ClawHub Skill 发布（@XingP14 账号 2026-04-14 满14天后）
 
 ### MCP Bridge
-- [ ] WoClaw MCP Server — 暴露 `woclaw_topics`, `woclaw_memory_read`, `woclaw_memory_write`, `woclaw_send` 工具
+- [x] WoClaw MCP Server — 暴露 `woclaw_topics`, `woclaw_memory_read`, `woclaw_memory_write`, `woclaw_send` 工具 ✅ (0.1.0 published)
 - [ ] MCP CLI 命令：`openclaw mcp serve` 暴露 WoClaw Hub
 
 ### Hook 系统
