@@ -2,14 +2,14 @@
   "name": "@clawlink/openclaw-plugin",
   "version": "0.1.1",
   "description": "ClawLink skill/plugin for OpenClaw - Connect to ClawLink Hub for multi-agent communication",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "type": "module",
   "bin": {
     "clawlink": "./bin/clawlink-cli.js"
   },
   "scripts": {
     "start": "node bin/clawlink-cli.js",
-    "build": "tsc --build tsconfig.build.json",
+    "build": "mkdir -p dist && cp src/index.js dist/index.js && cp -r skills openclaw.plugin.json bin dist/ && rm -f dist/index.d.ts dist/index.js.map",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {

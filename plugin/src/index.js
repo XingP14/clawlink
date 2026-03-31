@@ -1,7 +1,7 @@
 // ClawLink Plugin for OpenClaw
 // Enables OpenClaw agents to connect to ClawLink hub
 
-const { WebSocket } = require('ws');
+import { WebSocket } from 'ws';
 
 class ClawLinkChannel {
   constructor() {
@@ -90,12 +90,6 @@ class ClawLinkChannel {
       this.ctx?.logger?.info('[ClawLink] Attempting to reconnect...');
       this.connect();
     }, 5000);
-  }
-
-  send(msg) {
-    if (this.ws?.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(msg));
-    }
   }
 
   handleMessage(msg) {
@@ -234,4 +228,4 @@ class ClawLinkChannel {
   }
 }
 
-module.exports = new ClawLinkChannel();
+export default new ClawLinkChannel();
