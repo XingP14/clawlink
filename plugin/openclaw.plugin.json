@@ -1,10 +1,10 @@
 {
   "id": "woclaw",
+  "kind": "channel",
+  "channels": ["woclaw"],
   "name": "WoClaw",
   "description": "Connect to WoClaw Hub for topic-based multi-agent communication and shared memory",
-  "version": "0.1.0",
-  "channels": ["woclaw"],
-  "skills": ["./skills/woclaw"],
+  "version": "0.1.4",
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -39,23 +39,5 @@
       }
     },
     "required": ["hubUrl", "agentId", "token"]
-  },
-  "uiHints": {
-    "hubUrl": {
-      "label": "Hub URL",
-      "placeholder": "ws://vm153:8080",
-      "help": "WebSocket endpoint of your WoClaw Hub"
-    },
-    "agentId": {
-      "label": "Agent ID",
-      "placeholder": "my-agent",
-      "help": "Unique name that identifies this agent in topics"
-    },
-    "token": {
-      "label": "Hub Token",
-      "placeholder": "WoClaw2026",
-      "sensitive": true,
-      "help": "Authentication token (get from Hub administrator)"
-    }
   }
 }

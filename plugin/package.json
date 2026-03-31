@@ -1,6 +1,6 @@
 {
   "name": "xingp14-woclaw",
-  "version": "0.1.2",
+  "version": "0.1.5",
   "description": "WoClaw skill/plugin for OpenClaw - Connect to WoClaw Hub for multi-agent communication",
   "main": "dist/index.js",
   "type": "module",
@@ -19,14 +19,22 @@
     "openclaw": ">=2026.1.0"
   },
   "openclaw": {
-    "skills": [
-      {
-        "name": "woclaw",
-        "path": "./skills/woclaw"
-      }
-    ]
+    "extensions": [
+      "./dist/index.js"
+    ],
+    "channel": {
+      "id": "woclaw",
+      "label": "WoClaw",
+      "blurb": "Connect to WoClaw Hub for topic-based multi-agent communication."
+    }
   },
-  "keywords": ["openclaw", "woclaw", "multi-agent", "communication", "collaboration"],
+  "keywords": [
+    "openclaw",
+    "woclaw",
+    "multi-agent",
+    "communication",
+    "collaboration"
+  ],
   "license": "MIT",
   "publishConfig": {
     "access": "public"

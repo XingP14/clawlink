@@ -28,8 +28,8 @@
 ## 🎯 中期目标 (v0.4 - v0.6)
 
 ### 发布到生态
-- [x] **npm 包发布** - xingp14-woclaw@0.1.2 ✅
-- [ ] **ClawHub 发布** - 发布为 OpenClaw Skill/Plugin (CLI 需要 Node 20+)
+- [x] **npm 包发布** - xingp14-woclaw@0.1.5 ✅ (npm: npmjs.com/package/xingp14-woclaw)
+- [ ] **ClawHub 发布** - 发布为 OpenClaw Skill/Plugin (⚠️ GitHub 账号需满14天，@XingP14 账号创建于 2026-03，需等待)
 - [x] **GitHub Actions** - 完善 CI/CD 流程 ✅
 
 ### 安全性
