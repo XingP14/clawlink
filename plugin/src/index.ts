@@ -24,8 +24,8 @@ export class ClawLinkChannel implements ChannelPlugin {
   private ws: WebSocket | null = null;
   private config: ClawLinkConfig | null = null;
   private ctx: ChannelPluginContext | null = null;
-  private reconnectTimer: NodeJS.Timeout | null = null;
-  private pingTimer: NodeJS.Timeout | null = null;
+  private reconnectTimer: number | null = null;
+  private pingTimer: number | null = null;
   private pendingMessages: Map<string, (result: any) => void> = new Map();
   private messageHandlers: ((msg: any) => void)[] = [];
   private topics: Set<string> = new Set();
