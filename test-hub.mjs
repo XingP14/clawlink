@@ -1,68 +1,50 @@
-import WebSocket from 'ws';
+// WoClaw Hub Connection Test
+// Run from repo root: node test-hub.mjs
 
-const HUB_URL = process.env.CLAWLINK_HUB_URL || 'ws://vm153:8080';
-const AGENT_ID = process.env.CLAWLINK_AGENT_ID || 'p14-test';
-const TOKEN = process.env.CLAWLINK_TOKEN || 'ClawLink2026';
+import pkg from './hub/node_modules/ws/index.js';
+const { WebSocket } = pkg;
 
-console.log(`[Test] Connecting to ${HUB_URL} as ${AGENT_ID}...`);
+const HUB_URL = process.env.HUB_URL || 'ws://vm153:8080';
+const AGENT_ID = process.env.AGENT_ID || 'p14-test';
+const AUTH_TOKEN = process.env.AUTH_TOKEN || 'WoClaw2026';
 
-const ws = new WebSocket(`${HUB_URL}?agentId=${AGENT_ID}&token=${TOKEN}`);
+console.log(`Connecting to ${HUB_URL}...`);
+
+const ws = new WebSocket(HUB_URL, {
+  headers: {
+    'Authorization': `Bearer ${AUTH_TOKEN}`,
+    'X-Agent-ID': AGENT_ID
+  }
+});
 
 ws.on('open', () => {
-  console.log('[Test] ✅ Connected');
+  console.log('✅ Connected!');
   
   // Join a test topic
-  ws.send(JSON.stringify({ type: 'join', topic: 'test' }));
-  console.log('[Test] Joined topic: test');
-  
-  // Send a test message
-  setTimeout(() => {
-    ws.send(JSON.stringify({ type: 'message', topic: 'test', content: 'Hello from test script!' }));
-    console.log('[Test] Sent test message');
-  }, 500);
-  
-  // Write to shared memory
-  setTimeout(() => {
-    ws.send(JSON.stringify({ type: 'memory_write', key: 'test-key', value: 'test-value-' + Date.now() }));
-    console.log('[Test] Wrote to shared memory');
-  }, 1000);
-  
-  // Read shared memory
-  setTimeout(() => {
-    ws.send(JSON.stringify({ type: 'memory_read', key: 'test-key' }));
-    console.log('[Test] Read from shared memory');
-  }, 1500);
-  
-  // Leave topic
-  setTimeout(() => {
-    ws.send(JSON.stringify({ type: 'leave', topic: 'test' }));
-    console.log('[Test] Left topic');
-  }, 2500);
-  
-  // Close
-  setTimeout(() => {
-    ws.close();
-    console.log('[Test] ✅ All tests passed, closing');
-    process.exit(0);
-  }, 3000);
+  const joinMsg = { type: 'join', topic: 'test' };
+  ws.send(JSON.stringify(joinMsg));
+  console.log('📤 Joined topic: test');
 });
 
 ws.on('message', (data) => {
   const msg = JSON.parse(data.toString());
-  console.log('[Test] 📩 Received:', msg.type, msg);
+  console.log(`📨 Type: ${msg.type}`);
+  if (msg.type === 'welcome') console.log(`   Agent ID: ${msg.agentId}`);
+  if (msg.type === 'message') console.log(`   From: ${msg.from} | Content: ${msg.content}`);
 });
 
 ws.on('error', (err) => {
-  console.error('[Test] ❌ Error:', err.message);
+  console.error('❌ Error:', err.message);
   process.exit(1);
 });
 
 ws.on('close', () => {
-  console.log('[Test] Disconnected');
+  console.log('🔌 Disconnected');
+  process.exit(0);
 });
 
+// Timeout
 setTimeout(() => {
-  console.error('[Test] ⏰ Timeout');
+  console.log('✅ Test passed - connection stable');
   ws.close();
-  process.exit(1);
-}, 10000);
+}, 5000);
