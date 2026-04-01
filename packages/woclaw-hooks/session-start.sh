@@ -12,7 +12,7 @@ echo "=== WoClaw: Loading shared context ==="
 
 CONTEXT=$(curl -s \
   -H "Authorization: Bearer $WOCLAW_TOKEN" \
-  "$WOCLAW_HUB_URL/memory/$WOCLAW_PROJECT_KEY")
+  "$WOCLAW_HUB_URL/memory?key=$WOCLAW_PROJECT_KEY")
 
 if [ -n "$CONTEXT" ] && [ "$CONTEXT" != "null" ]; then
   echo "$CONTEXT"
