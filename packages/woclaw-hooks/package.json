@@ -1,0 +1,20 @@
+{
+  "name": "woclaw-hooks",
+  "version": "0.1.0",
+  "description": "WoClaw Hook Scripts for Claude Code — shared memory and context between Claude Code and OpenClaw agents",
+  "main": "install.js",
+  "bin": {
+    "woclaw-hooks": "./install.js"
+  },
+  "keywords": ["openclaw", "claude-code", "woclaw", "hooks", "shared-memory"],
+  "author": "XingP14",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/XingP14/woclaw",
+    "directory": "packages/woclaw-hooks"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
