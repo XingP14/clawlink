@@ -1,26 +1,6 @@
 // WoClaw OpenClaw Channel Plugin
 // Properly implements ChannelPlugin interface using defineChannelPluginEntry
 
-/// <reference types="node" />
-declare module 'ws' {
-  export class WebSocket {
-    constructor(address: string, options?: any);
-    send(data: any, cb?: (err?: Error) => void): void;
-    close(code?: number, reason?: string): void;
-    on(event: string, listener: (...args: any[]) => void): void;
-    once(event: string, listener: (...args: any[]) => void): void;
-    removeListener(event: string, listener: (...args: any[]) => void): void;
-    readyState: number;
-    static OPEN: number;
-    static CLOSED: number;
-  }
-  export class WebSocketServer {
-    constructor(options: any);
-    on(event: string, listener: (...args: any[]) => void): void;
-    close(cb?: () => void): void;
-  }
-}
-
 // ChannelPlugin type comes from ./plugin-types.ts
 
 // ============================================================================
