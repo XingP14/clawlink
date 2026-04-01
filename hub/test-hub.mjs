@@ -51,27 +51,35 @@ async function testWebSocket() {
       ws.send(JSON.stringify({ type: 'join', topic: 'diagnostic' }));
     });
 
+    let joined = false;
+    let msgCount = 0;
+
     ws.on('message', (data) => {
       const msg = JSON.parse(data.toString());
-      console.log(`📨 Received: ${msg.type}`);
+      console.log(`📨 Received: ${msg.type}${msg.topic ? ' (topic=' + msg.topic + ')' : ''}`);
       
       if (msg.type === 'welcome') {
         console.log(`✅ Authenticated as ${msg.agentId}`);
       }
-      if (msg.type === 'join' && msg.topic === 'diagnostic') {
-        console.log(`✅ Joined topic 'diagnostic'`);
+      if (msg.type === 'history' && !joined) {
+        // First response after join - confirm we received history
+        console.log(`✅ Joined topic 'diagnostic' (received ${msg.messages?.length || 0} historical messages)`);
+        joined = true;
         
         // Send a test message
-        ws.send(JSON.stringify({ type: 'message', topic: 'diagnostic', content: 'Diagnostic test message' }));
+        ws.send(JSON.stringify({ type: 'message', topic: 'diagnostic', content: 'Diagnostic test message from p14' }));
       }
-      if (msg.type === 'message' && msg.content === 'Diagnostic test message') {
-        console.log(`✅ Message round-trip successful`);
-        
-        // Leave topic
-        ws.send(JSON.stringify({ type: 'leave', topic: 'diagnostic' }));
+      if (msg.type === 'message' && msg.content?.includes('Diagnostic test message')) {
+        msgCount++;
+        if (msg.sent) {
+          console.log(`✅ Message round-trip successful (delivered)`);
+          // Leave topic
+          ws.send(JSON.stringify({ type: 'leave', topic: 'diagnostic' }));
+        }
       }
-      if (msg.type === 'leave' && msg.topic === 'diagnostic') {
-        console.log(`✅ Left topic 'diagnostic'`);
+      if (msg.type === 'history' && joined) {
+        // After leaving, some hubs send a final history - we're done
+        console.log(`✅ Test complete`);
         clearTimeout(timeout);
         ws.close(1000, 'Test complete');
         resolve();
