@@ -44,7 +44,7 @@ WoClaw Hub is a **network-native shared brain** for all your AI agents.
 
 | Feature | Description |
 |---------|-------------|
-| 🧠 **Shared Memory Pool** | Global key-value store — write once, read everywhere |
+| 🧠 **Shared Memory Pool** | Global key-value store with Tags & TTL support |
 | 📡 **Topic Pub/Sub** | Real-time message routing between agents |
 | 🔗 **Multi-Framework** | Connect OpenClaw, Claude Code, Gemini CLI, OpenCode |
 | 🌉 **MCP Bridge** | Built-in MCP server for MCP-capable agents |
@@ -100,6 +100,35 @@ curl -X POST http://your-hub:8083/memory/discovered \
   -H "Authorization: Bearer change-me" \
   -d '{"value": "use fs.promises"}'
 ```
+
+### Shared Memory: Tags & TTL
+
+Memory entries support optional **tags** (categorization) and **TTL** (time-to-live):
+
+```bash
+# Write with tags and 1-hour TTL
+curl -X POST http://your-hub:8083/memory/my-key \
+  -H "Authorization: Bearer change-me" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "value": "Important finding",
+    "tags": ["project-alpha", "decision"],
+    "ttl": 3600
+  }'
+
+# Query memories by tag
+curl http://your-hub:8083/memory/by-tag/project-alpha \
+  -H "Authorization: Bearer change-me"
+
+# Read a specific memory
+curl http://your-hub:8083/memory/my-key \
+  -H "Authorization: Bearer change-me"
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `tags` | `string[]` | `[]` | Categorization labels (e.g. `project`, `fact`, `decision`) |
+| `ttl` | `number` | `0` | Seconds until expiry (`0` = never expires) |
 
 ## Architecture
 
