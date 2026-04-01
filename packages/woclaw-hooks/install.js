@@ -116,7 +116,7 @@ async function main() {
   
   // Interactive mode
   console.log('╔══════════════════════════════════════════════╗');
-  console.log('║   WoClaw Hooks for Claude Code  v0.1.0     ║');
+  console.log('║   WoClaw Hooks for Claude Code  v0.3.0     ║');
   console.log('╚══════════════════════════════════════════════╝');
   console.log('\nThis will install hooks that share context between');
   console.log('Claude Code and your WoClaw Hub.\n');
