@@ -6,14 +6,14 @@
  * Usage:
  *   HUB_URL=ws://vm153:8082 \
  *   AGENT_ID=my-agent \
- *   TOKEN=ClawLink2026 \
+ *   TOKEN=WoClaw2026 \
  *   node ws-client.mjs
  */
 
 const HUB_URL = process.env.HUB_URL || 'ws://vm153:8082';
 const REST_URL = process.env.REST_URL || 'http://vm153:8083';
 const AGENT_ID = process.env.AGENT_ID || 'example-client';
-const TOKEN = process.env.TOKEN || 'ClawLink2026';
+const TOKEN = process.env.TOKEN || 'WoClaw2026';
 const TOPIC = process.env.TOPIC || 'general';
 
 const { WebSocket } = await import('ws');
