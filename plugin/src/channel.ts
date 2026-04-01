@@ -252,7 +252,7 @@ function unconfiguredReason(account: WoClawResolvedAccount): string {
 // Channel Setup Adapter
 // ============================================================================
 
-function applyAccountConfig(cfg: any, accountId: string, input: any): any {
+function applyAccountConfig({ cfg, accountId, input }: { cfg: any; accountId: string; input: any }): any {
   const config = { ...cfg };
   if (!config.channels) config.channels = {};
   if (!config.channels['woclaw']) config.channels['woclaw'] = { accounts: {} };
