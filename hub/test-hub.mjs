@@ -4,7 +4,7 @@
 
 const HUB_URL = process.env.HUB_URL || 'ws://vm153:8082';
 const REST_URL = process.env.REST_URL || 'http://vm153:8083';
-const TOKEN = process.env.TOKEN || 'ClawLink2026';
+const TOKEN = process.env.TOKEN || 'WoClaw2026';
 const AGENT_ID = process.env.AGENT_ID || 'diagnostic-' + Date.now();
 
 async function testREST() {
