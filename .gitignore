@@ -38,3 +38,6 @@ coverage/
 
 # NPM
 .npmrc
+
+# Site static (use site/ for versioned files)
+site-static/
