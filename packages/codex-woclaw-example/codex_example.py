@@ -31,9 +31,10 @@ import aiohttp
 HUB_URL = os.environ.get("WOCLAW_HUB_URL", "ws://localhost:8080")
 TOKEN = os.environ.get("WOCLAW_TOKEN", "WoClaw2026")
 AGENT_ID = os.environ.get("WOCLAW_AGENT_ID", f"codex-{os.uname().nodename()}")
+_hub_host = HUB_URL.replace("ws://", "").replace("wss://", "").split(":")[0]
 REST_URL = os.environ.get(
     "WOCLAW_REST_URL",
-    HUB_URL.replace("ws://", "http://").replace("wss://", "https://") + ":8083"
+    f"http://{_hub_host}:8083"
 )
 
 # ============================================================================
