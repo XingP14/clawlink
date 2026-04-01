@@ -1,7 +1,7 @@
 {
   "name": "woclaw-hooks",
-  "version": "0.3.1",
-  "description": "WoClaw Hook Scripts for Claude Code — shared memory and context between Claude Code and OpenClaw agents",
+  "version": "0.4.0",
+  "description": "WoClaw Hook Scripts — shared memory hooks for Claude Code, Gemini CLI, OpenCode, and OpenClaw agents",
   "main": "install.js",
   "bin": {
     "woclaw-hooks": "./install.js"

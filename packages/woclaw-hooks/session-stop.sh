@@ -4,7 +4,7 @@
 
 # Configuration
 export WOCLAW_HUB_URL="${WOCLAW_HUB_URL:-http://vm153:8083}"
-export WOCLAW_TOKEN="${WOCLAW_TOKEN:-WoClaw2026}"
+export WOCLAW_TOKEN="${WOCLAW_TOKEN:-WoClaw2026}" # REST API token (Hub uses WoClaw2026)
 export WOCLAW_PROJECT_KEY="${WOCLAW_PROJECT_KEY:-project:context}"
 
 # Collect session summary from CLAUDE.md if it exists
