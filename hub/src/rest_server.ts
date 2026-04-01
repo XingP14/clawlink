@@ -72,7 +72,7 @@ export class RestServer {
           res.end(JSON.stringify({ error: 'Method not allowed' }));
         }
       } else if (path.startsWith('/memory/tags/')) {
-        const tag = decodeURIComponent(path.slice(14));
+        const tag = decodeURIComponent(path.slice(13));
         if (method === 'GET') {
           this.handleMemoryByTag(res, tag);
         } else {
