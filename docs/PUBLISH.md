@@ -10,7 +10,7 @@
 | `woclaw-hub` | 0.3.0 | ✅ Done | [npm](https://www.npmjs.com/package/woclaw-hub) |
 | `woclaw-mcp` | 0.1.2 | ✅ Done | [npm](https://www.npmjs.com/package/woclaw-mcp) |
 | `woclaw-hooks` | 0.3.1 | ✅ Done | [npm](https://www.npmjs.com/package/woclaw-hooks) |
-| `opencode-woclaw` | 0.1.0 | 🔲 Not published | npm |
+| `opencode-woclaw` | 0.1.0 | ✅ Done | [npm](https://www.npmjs.com/package/opencode-woclaw) |
 | WoClaw Skill | — | ⏳ Blocked | ClawHub (~2026-04-13) |
 | Docker Hub | latest | ✅ Done | [Docker Hub](https://hub.docker.com/r/xingp14/woclaw-hub) |
 
