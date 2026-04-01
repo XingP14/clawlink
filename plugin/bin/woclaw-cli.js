@@ -6,10 +6,10 @@ import WebSocket from 'ws';
 const args = process.argv.slice(2);
 const command = args[0];
 
-const HUB_URL = process.env.CLAWLINK_HUB_URL || 'ws://localhost:8080';
-const AGENT_ID = process.env.CLAWLINK_AGENT_ID || 'cli-agent';
-const AUTH_TOKEN = process.env.CLAWLINK_TOKEN || 'change-me';
-const AUTO_JOIN = (process.env.CLAWLINK_AUTO_JOIN || '').split(',').filter(Boolean);
+const HUB_URL = process.env.WOCLAW_HUB_URL || 'ws://localhost:8080';
+const AGENT_ID = process.env.WOCLAW_AGENT_ID || 'cli-agent';
+const AUTH_TOKEN = process.env.WOCLAW_TOKEN || 'change-me';
+const AUTO_JOIN = (process.env.WOCLAW_AUTO_JOIN || '').split(',').filter(Boolean);
 
 function log(msg) {
   console.log(`[WoClaw] ${msg}`);

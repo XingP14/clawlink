@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "node bin/woclaw-cli.js",
-    "build": "mkdir -p dist && cp src/index.js dist/index.js && cp -r skills openclaw.plugin.json bin dist/ && rm -f dist/index.d.ts dist/index.js.map",
+    "build": "mkdir -p dist && npx tsc --project tsconfig.build.json && cp -r skills openclaw.plugin.json bin dist/",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {

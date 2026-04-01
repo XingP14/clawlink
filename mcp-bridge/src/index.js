@@ -210,7 +210,7 @@ async function handleCallTool(name, args) {
       }
     }
     case 'woclaw_memory_write': {
-      const msg = await send('memory.write', {
+      const msg = await send('memory_write', {
         key: args.key,
         value: args.value,
         tags: args.tags || [],

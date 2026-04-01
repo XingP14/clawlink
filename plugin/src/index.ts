@@ -1,7 +1,7 @@
 // WoClaw Plugin for OpenClaw
 // Enables OpenClaw agents to connect to WoClaw hub
 
-import type { ChannelPlugin, ChannelPluginContext } from '@openclaw/sdk';
+import type { ChannelPlugin, ChannelPluginContext } from './types.js';
 
 export interface WoClawConfig {
   hubUrl: string;

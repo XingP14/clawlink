@@ -3,9 +3,9 @@
 # Place in ~/.claude/hooks/ or as instructed by Claude Code
 
 # Configuration
-export CLAWLINK_HUB_URL="${CLAWLINK_HUB_URL:-http://vm153:8083}"
-export CLAWLINK_TOKEN="${CLAWLINK_TOKEN:-ClawLink2026}"
-export CLAWLINK_PROJECT_KEY="${CLAWLINK_PROJECT_KEY:-project:context}"
+export WOCLAW_HUB_URL="${WOCLAW_HUB_URL:-http://vm153:8083}"
+export WOCLAW_TOKEN="${WOCLAW_TOKEN:-WoClaw2026}"
+export WOCLAW_PROJECT_KEY="${WOCLAW_PROJECT_KEY:-project:context}"
 
 # Collect session summary from CLAUDE.md if it exists
 if [ -f "CLAUDE.md" ]; then
@@ -17,9 +17,9 @@ fi
 echo "=== WoClaw: Saving session context ==="
 
 RESULT=$(curl -s -X POST \
-  -H "Authorization: Bearer $CLAWLINK_TOKEN" \
+  -H "Authorization: Bearer $WOCLAW_TOKEN" \
   -H "Content-Type: application/json" \
-  -d "{\"key\":\"$CLAWLINK_PROJECT_KEY\",\"value\":\"$SESSION_SUMMARY\",\"updatedBy\":\"$(hostname)\"}" \
-  "$CLAWLINK_HUB_URL/memory")
+  -d "{\"key\":\"$WOCLAW_PROJECT_KEY\",\"value\":\"$SESSION_SUMMARY\",\"updatedBy\":\"$(hostname)\"}" \
+  "$WOCLAW_HUB_URL/memory")
 
 echo "Context saved to WoClaw Hub: $RESULT"

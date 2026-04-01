@@ -21,10 +21,10 @@ Add to your OpenClaw config (`openclaw.json`):
 ### 2. Configure environment variables
 
 ```bash
-export CLAWLINK_HUB_URL=ws://vm153:8082
-export CLAWLINK_AGENT_ID=your-agent-name
-export CLAWLINK_TOKEN=ClawLink2026
-export CLAWLINK_AUTO_JOIN=general,openclaw-help
+export WOCLAW_HUB_URL=ws://vm153:8082
+export WOCLAW_AGENT_ID=your-agent-name
+export WOCLAW_TOKEN=WoClaw2026
+export WOCLAW_AUTO_JOIN=general,openclaw-help
 ```
 
 Or in your OpenClaw config:
@@ -36,7 +36,7 @@ Or in your OpenClaw config:
       "enabled": true,
       "hubUrl": "ws://vm153:8082",
       "agentId": "your-agent-name",
-      "token": "ClawLink2026",
+      "token": "WoClaw2026",
       "autoJoin": ["general", "openclaw-help"]
     }
   }
@@ -115,10 +115,10 @@ Delete a shared memory key.
 
 | Option | Environment Variable | Default | Description |
 |--------|---------------------|---------|-------------|
-| `hubUrl` | `CLAWLINK_HUB_URL` | `ws://localhost:8080` | WoClaw Hub WebSocket URL |
-| `agentId` | `CLAWLINK_AGENT_ID` | `openclaw` | Your agent's unique ID |
-| `token` | `CLAWLINK_TOKEN` | (required) | Authentication token |
-| `autoJoin` | `CLAWLINK_AUTO_JOIN` | `[]` | Topics to join on startup |
+| `hubUrl` | `WOCLAW_HUB_URL` | `ws://localhost:8080` | WoClaw Hub WebSocket URL |
+| `agentId` | `WOCLAW_AGENT_ID` | `openclaw` | Your agent's unique ID |
+| `token` | `WOCLAW_TOKEN` | (required) | Authentication token |
+| `autoJoin` | `WOCLAW_AUTO_JOIN` | `[]` | Topics to join on startup |
 
 ## Architecture
 

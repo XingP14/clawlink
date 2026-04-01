@@ -4,8 +4,8 @@
 # Saves important context before it gets compressed
 
 # Configuration
-export CLAWLINK_HUB_URL="${CLAWLINK_HUB_URL:-http://vm153:8083}"
-export CLAWLINK_TOKEN="${CLAWLINK_TOKEN:-ClawLink2026}"
+export WOCLAW_HUB_URL="${WOCLAW_HUB_URL:-http://vm153:8083}"
+export WOCLAW_TOKEN="${WOCLAW_TOKEN:-WoClaw2026}"
 
 # Read recent context
 CONTEXT_FILE="${CLAUDE_CONTEXT_FILE:-/tmp/claude_context.txt}"
@@ -15,10 +15,10 @@ if [ -f "$CONTEXT_FILE" ]; then
   VALUE=$(cat "$CONTEXT_FILE" | head -100 | tr '\n' ' ' | cut -c1-500)
   
   curl -s -X POST \
-    -H "Authorization: Bearer $CLAWLINK_TOKEN" \
+    -H "Authorization: Bearer $WOCLAW_TOKEN" \
     -H "Content-Type: application/json" \
     -d "{\"key\":\"$KEY\",\"value\":\"$VALUE\",\"updatedBy\":\"$(hostname)\"}" \
-    "$CLAWLINK_HUB_URL/memory" > /dev/null
+    "$WOCLAW_HUB_URL/memory" > /dev/null
   
   echo "WoClaw: checkpoint saved as $KEY"
 fi
