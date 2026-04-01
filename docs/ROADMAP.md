@@ -34,7 +34,7 @@
 ## 🔥 v0.3 — MCP + Hook 系统
 
 ### 发布
-- [x] Docker Hub 自动构建 — workflow ready，tag `hub/v0.3.0` 待推送
+- [x] Docker Hub 自动构建 — workflow ready，通过推送 `hub/v*` tag 触发
 - [ ] ClawHub Skill 发布（@XingP14 账号 2026-04-13 满14天后；GitHub 创建于 2026-03-30）
 
 ### MCP Bridge
