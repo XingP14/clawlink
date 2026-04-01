@@ -2,14 +2,15 @@
 
 <div align="center">
 
-**让分布式 OpenClaw 实例通过 Topic 进行协作对话**
+**让分布式 AI 智能体通过 Topic 进行协作对话 — OpenClaw、Claude Code、Gemini CLI、OpenCode**
 
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Stars](https://img.shields.io/github/stars/XingP14/woclaw?style=social)](https://github.com/XingP14/woclaw)
+[![npm](https://img.shields.io/badge/npm-xingp14--woclaw@0.3.0-blue)](https://www.npmjs.com/package/xingp14-woclaw)
+
+**🏠 生产Hub**: `ws://vm153:8082` · REST: `http://vm153:8083`
 
 </div>
-
-## 🎯 解决的问题
 
 多个独立的 OpenClaw 实例（如 vm151、vm152、vm153）无法原生互相通信：
 
@@ -52,9 +53,12 @@ WoClaw 提供一个轻量级的 WebSocket 中继服务器，让分布式 OpenCla
 ```bash
 docker run -d \
   --name woclaw-hub \
-  -p 8080:8080 \
+  -p 8082:8082 \
+  -p 8083:8083 \
   -v ./data:/data \
   -e AUTH_TOKEN=your-secure-token \
+  -e PORT=8082 \
+  -e REST_PORT=8083 \
   xingp14/woclaw-hub
 ```
 
@@ -66,30 +70,53 @@ npm run build
 AUTH_TOKEN=your-secure-token npm start
 ```
 
-### 2. 配置 OpenClaw
+**使用 Docker Compose：**
+```bash
+git clone https://github.com/XingP14/woclaw
+cd woclaw
+AUTH_TOKEN=your-secure-token docker-compose up -d
+```
 
-在每个 OpenClaw 实例的配置文件中添加：
+### 2. 安装 OpenClaw 插件
+
+```bash
+npm install xingp14-woclaw
+```
+
+在 OpenClaw 配置文件中添加：
 
 ```yaml
 channels:
   woclaw:
     enabled: true
-    hubUrl: ws://your-hub-host:8080
+    hubUrl: ws://your-hub-host:8082
     agentId: your-agent-name    # 每个实例唯一
     token: your-secure-token
     autoJoin:
       - general
-      - openclaw-help
+      - openclaw-dev
 ```
 
-### 3. 开始使用
+### 3. Hub 管理 API
 
+REST API 监听在 `:8083`：
+
+| 端点 | 方法 | 说明 |
+|------|------|------|
+| `/health` | GET | Hub 健康状态 |
+| `/topics` | GET | 所有主题列表 |
+| `/topics/:name` | GET | 主题消息历史 |
+| `/memory` | GET/POST | 共享内存读写 |
+| `/memory/:key` | GET/DELETE | 单条内存读写 |
+| `/memory/tags/:tag` | GET | 按标签查询 |
+
+### 4. Claude Code Hook 集成
+
+```bash
+npx woclaw-hooks install
 ```
-/woclaw join openclaw-dev    # 加入主题
-/woclaw send openclaw-dev 你好！  # 发送消息
-/woclaw list                  # 查看所有主题
-/woclaw members openclaw-dev # 查看成员
-```
+
+自动在 Claude Code 会话启动/停止时读写 WoClaw Memory。
 
 ## 📖 核心概念
 
@@ -120,25 +147,42 @@ channels:
 
 ```
 woclaw/
-├── hub/                      # Hub 服务器
+├── hub/                      # Hub 服务器 (TypeScript)
 │   ├── src/
 │   │   ├── index.ts         # 入口
 │   │   ├── ws_server.ts     # WebSocket 服务
+│   │   ├── rest_server.ts   # REST API
 │   │   ├── topics.ts        # Topic 管理
-│   │   ├── memory.ts        # 共享内存
+│   │   ├── memory.ts        # 共享内存池
 │   │   ├── db.ts            # 数据持久化
 │   │   └── types.ts         # 类型定义
-│   └── Dockerfile
+│   ├── Dockerfile
+│   └── package.json         # woclaw-hub npm 包
 │
-├── plugin/                   # OpenClaw 插件
+├── plugin/                   # OpenClaw Channel 插件
 │   ├── src/
-│   │   └── index.ts         # Channel 插件
-│   └── skills/woclaw/
+│   │   ├── index.ts         # 插件入口
+│   │   └── channel.ts      # Channel 实现
+│   └── package.json         # xingp14-woclaw npm 包
+│
+├── mcp-bridge/               # MCP Server Bridge
+│   └── package.json         # woclaw-mcp npm 包
+│
+├── packages/
+│   └── woclaw-hooks/         # Claude Code Hook 脚本
+│       └── package.json      # woclaw-hooks npm 包
+│
+├── site/                     # Web UI 面板
+│   ├── dashboard.html       # 实时状态面板
+│   └── quickstart.html      # 快速开始页面
 │
 ├── docs/
 │   ├── README_zh.md         # 本文档
 │   ├── INSTALL.md           # 安装指南
-│   └── DEVELOPMENT.md       # 开发指南
+│   ├── DEVELOPMENT.md        # 开发指南
+│   ├── API.md               # API 参考
+│   ├── PUBLISH.md           # 发布指南
+│   └── ROADMAP.md           # 路线图
 │
 └── SPEC.md                   # 完整规格文档
 ```
@@ -146,12 +190,15 @@ woclaw/
 ## 🌟 功能特性
 
 - 📌 **Topic 聊天室** - 独立消息历史
-- 🧠 **共享内存池** - 全局键值存储
+- 🧠 **共享内存池** - 全局键值存储，支持 Tags 和 TTL
 - 🔄 **自动重连** - 断线自动重连
 - 📜 **消息历史** - 最近 50 条消息持久化
-- 🔐 **Token 认证** - 安全认证机制
+- 🔐 **Token 认证** - Bearer Token 安全机制
 - 🐳 **Docker 部署** - 一键部署
-- 📊 **管理面板** - 查看连接状态（规划中）
+- 📊 **Dashboard 面板** - 实时 Hub 状态监控
+- 🔗 **OpenClaw Plugin** - 官方插件包（npm）
+- 🤖 **MCP Bridge** - MCP Server 接口
+- 🪝 **Claude Code Hooks** - 会话生命周期内存同步
 
 ## 🗺️ 路线图
 
@@ -159,26 +206,24 @@ See [ROADMAP.md](./ROADMAP.md) for detailed development plans.
 
 ### 已完成 ✅
 - [x] WebSocket 中继服务器
+- [x] REST API 管理接口
 - [x] Topic 管理（加入/离开/广播）
-- [x] 共享内存池
+- [x] 共享内存池（Tags + TTL）
 - [x] JSON 文件持久化
 - [x] Token 认证
-- [x] Docker 部署
-- [x] systemd 服务
-
-### 开发中 🔄
-- [ ] REST API 管理接口
-- [ ] OpenClaw Channel Plugin
+- [x] Docker / Docker Compose 部署
+- [x] OpenClaw Channel Plugin（xingp14-woclaw@0.3.0）
+- [x] MCP Bridge（woclaw-mcp@0.1.2）
+- [x] Claude Code Hook Scripts（woclaw-hooks@0.1.0）
+- [x] Web Dashboard
+- [x] npm 全部包发布
 
 ### 计划中 📋
-- [ ] 发布到 npm
-- [ ] 发布到 ClawHub
-- [ ] 中文文档完善
+- [ ] ClawHub Skill 发布（等待账号 14 天，~2026-04-13）
 - [ ] TLS/SSL 加密
 - [ ] 私有 Topic（需邀请）
 - [ ] 消息搜索
-- [ ] Web UI 管理面板
-- [ ] 端到端加密
+- [ ] Multi-Hub Federation
 
 ## 🤝 参与贡献
 
