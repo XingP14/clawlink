@@ -2,6 +2,17 @@
 
 All notable changes to WoClaw will be documented in this file.
 
+## [0.3.1] - 2026-04-02
+
+### Fixed (woclaw-hooks)
+- REST URL format fixed (removed trailing /api prefix)
+- Default Hub address corrected
+- JSON injection format fixed in hook scripts
+
+### Documentation
+- Added woclaw-hooks npm version badge to README
+- Fixed version display in README
+
 ## [0.3.0] - 2026-04-01
 
 ### Changed (Plugin Refactoring)
