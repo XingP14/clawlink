@@ -12,7 +12,7 @@
 
 ```bash
 # 拉取最新版本
-docker pull xingp14/woclaw-hub:hub/v0.3.0
+docker pull xingp14/woclaw-hub:latest
 
 # 运行
 docker run -d \
@@ -22,7 +22,7 @@ docker run -d \
   -v /path/to/data:/data \
   -e AUTH_TOKEN=your-secure-token \
   --restart unless-stopped \
-  xingp14/woclaw-hub:hub/v0.3.0
+  xingp14/woclaw-hub:latest
 ```
 
 ### 从源码构建
@@ -54,7 +54,7 @@ version: '3.8'
 
 services:
   woclaw-hub:
-    image: xingp14/woclaw-hub:hub/v0.3.0
+    image: xingp14/woclaw-hub:latest
     container_name: woclaw-hub
     ports:
       - "8082:8082"
@@ -219,7 +219,7 @@ spec:
     spec:
       containers:
       - name: woclaw-hub
-        image: xingp14/woclaw-hub:hub/v0.3.0
+        image: xingp14/woclaw-hub:latest
         ports:
         - containerPort: 8082
         env:
