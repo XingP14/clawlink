@@ -37,14 +37,28 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Extract version from tag
+        id: version
+        run: |
+          REF="${{ github.ref_name }}"
+          if [[ "$REF" == hub/v* ]]; then
+            VERSION="${REF#hub/v}"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "is_release=true" >> $GITHUB_OUTPUT
+          else
+            echo "version=$REF" >> $GITHUB_OUTPUT
+            echo "is_release=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: xingp14/woclaw-hub
           tags: |
+            type=raw,value=latest
+            type=raw,value=${{ steps.version.outputs.version }},enable=${{ steps.version.outputs.is_release }}
             type=ref,event=branch
-            type=semver,pattern={{version}}
             type=sha,prefix=
 
       - name: Build and push (hub)
@@ -55,4 +69,4 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VERSION=${{ github.ref_name }}
+            VERSION=${{ steps.version.outputs.version }}
