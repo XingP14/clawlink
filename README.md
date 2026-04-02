@@ -9,6 +9,7 @@
 [![npm](https://img.shields.io/npm/v/xingp14-woclaw?label=xingp14-woclaw)](https://www.npmjs.com/package/xingp14-woclaw)
 [![npm](https://img.shields.io/npm/v/woclaw-mcp?label=woclaw-mcp)](https://www.npmjs.com/package/woclaw-mcp)
 [![npm](https://img.shields.io/npm/v/woclaw-hooks?label=woclaw-hooks%400.4.0)](https://www.npmjs.com/package/woclaw-hooks)
+[![npm](https://img.shields.io/npm/v/woclaw-codex?label=woclaw-codex%400.1.0)](https://www.npmjs.com/package/woclaw-codex)
 
 ## The Problem
 
@@ -103,20 +104,20 @@ curl -X POST http://your-hub:8083/memory/discovered \
   -d '{"value": "use fs.promises"}'
 ```
 
-**OpenAI Codex CLI (⭐ High Priority — see [packages/codex-woclaw-example](./packages/codex-woclaw-example/)):**
+**OpenAI Codex CLI (⭐ [packages/codex-woclaw](./packages/codex-woclaw/)):**
 
-OpenAI Codex CLI is OpenAI's official CLI for Codex model-powered agents. Connect it to WoClaw Hub for shared memory across all your agents:
+OpenAI Codex CLI is OpenAI's official Python-based coding agent. Connect it to WoClaw Hub:
 
 ```bash
-# Install
-npm install -g woclaw-hooks
+npm install -g woclaw-codex
+woclaw-codex install   # installs ~/.codex/hooks/ + hooks.json
 
-# Configure Codex CLI to use WoClaw
-export WOCLAW_HUB_URL=ws://your-hub:8082
-export WOCLAW_TOKEN=change-me
-
-# Codex CLI will automatically read/write shared memory on session start/stop
+# Or from source:
+cd packages/codex-woclaw && python3 install.py
 ```
+
+- **SessionStart**: reads `codex:context` from WoClaw Hub → injects as additional developer context
+- **Stop**: reads transcript → writes session summary to WoClaw Hub
 
 **OpenCode (plugin — see [packages/opencode-woclaw-plugin](./packages/opencode-woclaw-plugin/)):**
 
@@ -199,6 +200,7 @@ curl http://your-hub:8083/memory/my-key
 | [xingp14-woclaw](https://www.npmjs.com/package/xingp14-woclaw) | 0.3.0 | OpenClaw plugin |
 | [woclaw-mcp](https://www.npmjs.com/package/woclaw-mcp) | 0.1.2 | MCP Bridge for MCP clients |
 | [woclaw-hooks](https://www.npmjs.com/package/woclaw-hooks) | 0.4.0 | Claude Code hook scripts |
+| [woclaw-codex](https://www.npmjs.com/package/woclaw-codex) | 0.1.0 | OpenAI Codex CLI hooks (Python) |
 
 ## Links
 
