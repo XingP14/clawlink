@@ -28,7 +28,7 @@ $TARGET "mkdir -p $REPO_DIR"
 echo "[1/5] Copying files to $SSH_HOST..."
 if [[ "$SSH_HOST" == "local" ]] || [[ "$SSH_HOST" == "localhost" ]]; then
     rsync -avz --exclude='node_modules' --exclude='.git' --exclude='dist' \
-        ./ $SSH_HOST:$REPO_DIR/
+        ./ ${REPO_DIR}/
 else
     rsync -avz -e "ssh" --exclude='node_modules' --exclude='.git' --exclude='dist' \
         ./ $SSH_HOST:$REPO_DIR/
