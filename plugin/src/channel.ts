@@ -154,6 +154,10 @@ class WoClawChannelInstance {
       case 'join':
       case 'leave':
       case 'pong':
+      case 'ping':
+        if (msg.type === 'ping') {
+          this.send({ type: 'pong' });
+        }
         break;
 
       case 'error':
