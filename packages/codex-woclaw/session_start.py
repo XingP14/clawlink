@@ -57,18 +57,20 @@ def main():
 
     context = read_memory(MEMORY_KEY)
 
+    output = {
+        "continue": True
+    }
     if context:
         # Emit JSON output to inject as additional context
-        output = {
-            "hookSpecificOutput": {
-                "hookEventName": "SessionStart",
-                "additionalContext": f"[WoClaw] Shared project context:\n{context}"
-            }
+        output["hookSpecificOutput"] = {
+            "hookEventName": "SessionStart",
+            "additionalContext": f"[WoClaw] Shared project context:\n{context}"
         }
-        print(json.dumps(output))
+        print(f"[WoClaw] Loaded shared context from {MEMORY_KEY}", file=sys.stderr)
     else:
-        # No shared context found — just continue silently
-        pass
+        print(f"[WoClaw] No shared context found at {MEMORY_KEY}, starting fresh", file=sys.stderr)
+
+    print(json.dumps(output))
 
 
 if __name__ == "__main__":
