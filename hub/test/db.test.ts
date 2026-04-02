@@ -115,7 +115,7 @@ describe('ClawDB', () => {
       console.log('dbPath:', dbPath);
       console.log('Before load - memory:', JSON.stringify((db as any).data.memory));
       // Re-call load() to trigger migration
-      (db as any).load();
+      (db as any).data = (db as any).load();
       console.log('After load - memory:', JSON.stringify((db as any).data.memory));
       const mem = db.getMemory('legacy');
       console.log('mem:', mem);

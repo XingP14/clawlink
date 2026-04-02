@@ -50,6 +50,11 @@ class WoClawChannelInstance {
   private logger: { info: (msg: string) => void; warn: (msg: string) => void; error: (msg: string, ...args: any[]) => void; debug: (msg: string) => void } | null = null;
 
   initialize(config: WoClawConfig, dispatchFn: (msg: any) => void, logger: { info: (msg: string) => void; warn: (msg: string) => void; error: (msg: string, ...args: any[]) => void; debug: (msg: string) => void }): void {
+    // Close existing connection before reconnecting
+    if (this.ws) {
+      try { this.ws.close(1000, 'Reconnecting'); } catch(e) {}
+      this.ws = null;
+    }
     this.config = config;
     this.dispatchFn = dispatchFn;
     this.logger = logger;
@@ -93,6 +98,14 @@ class WoClawChannelInstance {
           }
         }, 25000);
       };
+
+      // Handle WebSocket ping frames from Hub - must respond at protocol level
+      (this.ws as any).on('ping', () => {
+        this.logger?.debug('[WoClaw] WebSocket ping received, sending pong');
+        if (this.ws?.readyState === 1) {
+          (this.ws as any).pong();
+        }
+      });
 
       this.ws.onmessage = (event) => {
         try {
