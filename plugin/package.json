@@ -1,14 +1,14 @@
 {
   "name": "xingp14-woclaw",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "WoClaw skill/plugin for OpenClaw - Connect to WoClaw Hub for multi-agent communication",
   "main": "dist/index.js",
   "type": "module",
   "bin": {
-    "woclaw": "./bin/woclaw-cli.js"
+    "woclaw": "./bin/woclaw.js"
   },
   "scripts": {
-    "start": "node bin/woclaw-cli.js",
+    "start": "node bin/woclaw.js",
     "build": "mkdir -p dist && npx tsc --project tsconfig.build.json && cp -r skills openclaw.plugin.json bin dist/",
     "prepublishOnly": "npm run build",
     "test": "echo 'No tests yet' && exit 0"
