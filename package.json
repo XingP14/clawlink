@@ -5,10 +5,10 @@
   "description": "WoClaw - Shared memory and messaging hub for AI agents",
   "scripts": {
     "test": "npm run test:unit",
-    "test:unit": "npm run test --workspace=@woclaw/hub --workspace=@woclaw/plugin",
+    "test:unit": "npm run test --workspace=hub --workspace=plugin",
     "test:integration": "vitest run --config vitest.config.ts integration-test/",
-    "test:coverage": "npm run test:coverage --workspace=@woclaw/hub",
-    "build": "npm run build --workspace=@woclaw/hub && npm run build --workspace=@woclaw/plugin",
+    "test:coverage": "npm run test:coverage --workspace=hub",
+    "build": "npm run build --workspace=hub && npm run build --workspace=plugin",
     "build:all": "npm run build && npm run build --workspace=packages/woclaw-hooks"
   },
   "workspaces": [
@@ -17,5 +17,8 @@
     "packages/woclaw-hooks",
     "packages/woclaw-mcp"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "vitest": "^2.1.9"
+  }
 }
