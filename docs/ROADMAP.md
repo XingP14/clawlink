@@ -297,7 +297,12 @@ woclaw migrate --all            # 执行所有迁移
   - ℹ️ Claude Code settings.json 使用 hook 名称（不含 .sh），如 `"SessionStart": "woclaw-session-start"`
   - ℹ️ install.js 已调用 saveConfig(config) 写入 ~/.woclaw/.env ✅
 
-- [ ] **S6-2（10min）：测试 Claude Code hook 安装（dry-run 方式）**
+- [x] **S6-2（10min）：测试 Claude Code hook 安装（dry-run 方式）** ✅ 2026-04-03
+  - ✅ 模拟安装测试通过：session-start/stop/precompact 全部正确安装
+  - ✅ 权限 0o755 正确设置
+  - ✅ env 替换正确：HUB_URL/TOKEN/PROJECT_KEY 均正确替换
+  - ⚠️ **settingsHint 只提示 session-start**，session-stop/precompact 配置缺失（用户需自行添加到 settings.json）
+  - ℹ️ Claude Code settings.json hook 名称不应含 .sh 后缀（如 `SessionStart: "woclaw-session-start"`）
   - 不实际修改 `~/.claude/`，只验证 install.js 逻辑
   - 或在临时目录模拟 `~/.claude/` 结构测试
 
