@@ -197,7 +197,13 @@ woclaw migrate --all            # 执行所有迁移
   - 通过 `~/.gemini/settings.json` 配置，stdin/stdout JSON 通信
   - 输出：✅ 有 hooks 支持，参考 Claude Code 模式实现
 
-- [ ] **S1-2（10min）：实现 gemini-session-start.sh**
+- [x] **S1-2（10min）：实现 gemini-session-start.sh** ✅ 2026-04-03
+  - 创建 `packages/woclaw-hooks/gemini-session-start.sh`
+  - 通过 REST API 从 WoClaw Hub 读取共享上下文
+  - 支持 Gemini CLI stdin JSON 格式消费
+  - 更新 install.js gemini hookNames 和 settingsHint
+
+- [ ] **S1-3（10min）：实现 gemini-session-stop.sh + 更新 install.js**
   - 参考 `packages/woclaw-hooks/session-start.sh` 模式
   - 创建 `packages/woclaw-hooks/gemini-session-start.sh`
   - curl GET 请求读取 WoClaw Hub memory
