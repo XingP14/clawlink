@@ -191,10 +191,11 @@ woclaw migrate --all            # 执行所有迁移
 ### S1: Gemini CLI Hook 脚本（v0.2）
 > 评估：需要先调研 Gemini CLI hook 机制，总计 ~3 步骤
 
-- [ ] **S1-1（10min）：调研 Gemini CLI hook 机制**
-  - Web 搜索："Gemini CLI hooks script" 或查看 `~/.gemini/` 目录结构
-  - 确认是否有 hooks系统，hook 触发时机，配置方式
-  - 输出：确认有/无 hooks 支持，决定实现方案
+- [x] **S1-1（10min）：调研 Gemini CLI hook 机制** ✅ 2026-04-03
+  - Web 搜索 + 文档研究确认：Gemini CLI 有完整 hooks 系统（v0.26.0+）
+  - 支持 SessionStart/SessionEnd/PreCompress 等生命周期 hooks
+  - 通过 `~/.gemini/settings.json` 配置，stdin/stdout JSON 通信
+  - 输出：✅ 有 hooks 支持，参考 Claude Code 模式实现
 
 - [ ] **S1-2（10min）：实现 gemini-session-start.sh**
   - 参考 `packages/woclaw-hooks/session-start.sh` 模式
