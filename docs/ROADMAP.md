@@ -203,15 +203,11 @@ woclaw migrate --all            # 执行所有迁移
   - 支持 Gemini CLI stdin JSON 格式消费
   - 更新 install.js gemini hookNames 和 settingsHint
 
-- [ ] **S1-3（10min）：实现 gemini-session-stop.sh + 更新 install.js**
-  - 参考 `packages/woclaw-hooks/session-start.sh` 模式
-  - 创建 `packages/woclaw-hooks/gemini-session-start.sh`
-  - curl GET 请求读取 WoClaw Hub memory
-
-- [ ] **S1-3（10min）：实现 gemini-session-stop.sh + 更新 install.js**
+- [x] **S1-3（10min）：实现 gemini-session-stop.sh + 更新 install.js** ✅ 2026-04-03
   - 创建 `packages/woclaw-hooks/gemini-session-stop.sh`
-  - 更新 install.js 的 FRAMEWORK_CONFIG.gemini 添加 hook file detection
-  - 测试：`bash gemini-session-start.sh`
+  - 从 stdin 读取 Gemini CLI SessionEnd JSON（sessionId, recentInteractions）
+  - 将 session 摘要写入 WoClaw Hub REST API
+  - install.js 早已配置 `hookNames` 包含 `gemini-session-stop`，无需额外修改
 
 ### S2: OpenCode Hook 脚本（v0.2）
 > 评估：同 S1，需要先调研，总计 ~3 步骤
@@ -417,4 +413,4 @@ woclaw migrate --all            # 执行所有迁移
 
 ---
 
-_Last updated: 2026-04-03 17:41 CST_
+_Last updated: 2026-04-03 19:03 CST_
