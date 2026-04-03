@@ -351,10 +351,13 @@ woclaw migrate --all            # 执行所有迁移
 ### S9: Memory Versioning（v0.4）
 > 评估：Hub 侧改动，~4 步骤
 
-- [ ] **S9-1（10min）：设计 Memory Versioning 方案**
+- [x] **S9-1（10min）：设计 Memory Versioning 方案** ✅ 2026-04-04
   - 查看 `hub/src/memory.ts` 和 `hub/src/db.ts`
   - 设计：write 时保留旧值到 `memory_versions` 表
-  - 输出：数据库 schema 变更方案
+  - 输出：数据库 schema 变更方案 + 实际实现
+  - `DBMemoryVersion` 类型已添加至 `types.ts`
+  - `setMemory()` 在覆盖前自动保存旧值到 `memory_versions`，版本号从 1 开始递增
+  - `GET /memory/:key/versions` REST 端点已添加，Hub 已部署并测试通过 ✅
 
 - [ ] **S9-2（10min）：实现 DB versioning 支持**
   - 在 `db.ts` 添加 `getMemoryVersions(key)` 方法
