@@ -434,9 +434,12 @@ woclaw migrate --all            # 执行所有迁移
 ### S13-S16: 迁移工具（v0.5）
 > 评估：每个 ~4 步骤，以 S13 Codex 为例
 
-- [ ] **S13-1（10min）：调研 Codex session 存储格式**
-  - 查看 `~/.codex/sessions/` 目录结构
-  - 确定 session transcript 文件格式（JSON?）
+- [x] **S13-1（10min）：调研 Codex session 存储格式** ✅ 2026-04-04
+  - Web 搜索 + Codex 官方文档确认存储格式
+  - `~/.codex/history.jsonl` — 主历史（JSONL，每行 messages）
+  - `$CODEX_HOME/sessions/YYYY/MM/DD/rollout-*.jsonl` — 分会话轨迹（JSONL，tool calls + trajectory）
+  - Hook stdin 格式：`{session_id, transcript_path, cwd, stopReason}`
+  - 输出：`docs/S13-1-CODEX-SESSION-FORMAT.md`
 
 - [ ] **S13-2（10min）：实现 session parser**
   - 在 `packages/woclaw-hooks/` 创建 `codex-migrate.js`
