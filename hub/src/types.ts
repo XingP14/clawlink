@@ -79,3 +79,86 @@ export interface DBMemoryVersion {
   updatedAt: number;
   updatedBy: string;
 }
+
+// ─── v0.4: Delegation Types ────────────────────────────────────────────────
+
+export type DelegationStatus =
+  | 'requested'
+  | 'accepted'
+  | 'rejected'
+  | 'running'
+  | 'done'
+  | 'failed'
+  | 'cancelled';
+
+export interface DelegationTask {
+  description: string;
+  payload?: any;
+  priority?: 'low' | 'normal' | 'high';
+}
+
+export interface Delegation {
+  id: string;
+  fromAgent: string;
+  toAgent: string;
+  task: DelegationTask;
+  topic?: string;         // optional topic for result broadcast
+  status: DelegationStatus;
+  progress: number;       // 0-100
+  createdAt: number;
+  updatedAt: number;
+  acceptedAt?: number;
+  completedAt?: number;
+  result?: any;
+  error?: string;
+  summary?: string;
+  note?: string;          // accept/reject/cancel reason
+}
+
+// Inbound delegation messages from clients
+export interface InboundDelegateRequest {
+  type: 'delegate_request';
+  id: string;
+  task: DelegationTask;
+  toAgent: string;
+  topic?: string;
+}
+
+export interface InboundDelegateResponse {
+  type: 'delegate_response';
+  id: string;
+  status: 'accepted' | 'rejected';
+  note?: string;
+}
+
+export interface InboundDelegateProgress {
+  type: 'delegate_progress';
+  id: string;
+  progress: number;
+  message?: string;
+}
+
+export interface InboundDelegateResult {
+  type: 'delegate_result';
+  id: string;
+  status: 'done' | 'failed';
+  result?: any;
+  error?: string;
+  summary?: string;
+}
+
+export interface InboundDelegateCancel {
+  type: 'delegate_cancel';
+  id: string;
+  reason?: string;
+}
+
+export type InboundDelegationMessage =
+  | InboundDelegateRequest
+  | InboundDelegateResponse
+  | InboundDelegateProgress
+  | InboundDelegateResult
+  | InboundDelegateCancel;
+
+// Extend InboundMessage to include delegation types
+export type InboundMessageWithDelegation = InboundMessage | InboundDelegationMessage;
