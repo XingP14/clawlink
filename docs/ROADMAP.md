@@ -426,8 +426,10 @@ woclaw migrate --all            # 执行所有迁移
   - `GET /delegations`, `POST /delegations`, `DELETE /delegations/:id` ✅
   - `GET /delegations/pending?agentId=X` ✅ 全部验证通过
 
-- [ ] **S12-5（10min）：CLI 支持 + 测试**
-  - 在 `plugin/bin/woclaw-cli.js` 添加 `delegate` 命令
+- [x] **S12-5（10min）：CLI 支持 + 测试** ✅ 2026-04-04
+  - `woclaw delegate <toAgent> <description>` ✅
+  - `woclaw delegations [status]` ✅
+  - Hub vm153 重启完成
 
 ### S13-S16: 迁移工具（v0.5）
 > 评估：每个 ~4 步骤，以 S13 Codex 为例
