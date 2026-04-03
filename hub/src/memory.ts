@@ -95,17 +95,17 @@ export class MemoryPool {
         }
       }
 
-      // Recency boost: entries updated in last 24h get +1
+      // Recency boost: entries updated in last 24h get +1 (tiebreaker only)
       const dayAgo = Date.now() - 86400000;
-      if (mem.updatedAt > dayAgo) score += 1;
+      const recencyBoost = mem.updatedAt > dayAgo ? 1 : 0;
 
-      return { mem, score };
+      return { mem, score, recencyBoost };
     });
 
-    // Sort by score desc, then by updatedAt desc as tiebreaker
+    // Sort by score desc, then by recency desc as tiebreaker
     scored.sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
-      return b.mem.updatedAt - a.mem.updatedAt;
+      return b.recencyBoost - a.recencyBoost;
     });
 
     return scored

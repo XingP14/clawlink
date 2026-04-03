@@ -368,6 +368,21 @@ export class WSServer {
     return this.memory;
   }
 
+  // v0.4: Agent discovery - return connected agents info
+  getAgentsInfo(): { agentId: string; connectedAt: number; topics: string[]; lastSeen: number }[] {
+    const now = Date.now();
+    const result: { agentId: string; connectedAt: number; topics: string[]; lastSeen: number }[] = [];
+    for (const [agentId, agent] of this.agents) {
+      result.push({
+        agentId,
+        connectedAt: agent.connectedAt,
+        topics: Array.from(agent.topics),
+        lastSeen: now, // WebSocket agents are live, no explicit lastSeen needed
+      });
+    }
+    return result;
+  }
+
   close(): void {
     if (this.pingInterval) {
       clearInterval(this.pingInterval);

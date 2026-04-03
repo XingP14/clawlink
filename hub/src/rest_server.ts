@@ -3,6 +3,7 @@ import { ClawDB } from './db.js';
 import { TopicsManager } from './topics.js';
 import { MemoryPool } from './memory.js';
 import { Config } from './types.js';
+import { WSServer } from './ws_server.js';
 
 export class RestServer {
   private server: http.Server | null = null;
@@ -10,12 +11,14 @@ export class RestServer {
   private topics: TopicsManager;
   private memory: MemoryPool;
   private config: Config;
+  private wsServer: WSServer | null = null;
 
-  constructor(config: Config, db: ClawDB, topics: TopicsManager, memory: MemoryPool) {
+  constructor(config: Config, db: ClawDB, topics: TopicsManager, memory: MemoryPool, wsServer?: WSServer) {
     this.config = config;
     this.db = db;
     this.topics = topics;
     this.memory = memory;
+    this.wsServer = wsServer || null;
   }
 
   start(): void {
@@ -58,6 +61,14 @@ export class RestServer {
       } else if (path === '/topics') {
         if (method === 'GET') {
           this.handleTopicsList(res);
+        } else {
+          res.writeHead(405);
+          res.end(JSON.stringify({ error: 'Method not allowed' }));
+        }
+      // v0.4: Agent discovery
+      } else if (path === '/agents') {
+        if (method === 'GET') {
+          this.handleAgentsList(res);
         } else {
           res.writeHead(405);
           res.end(JSON.stringify({ error: 'Method not allowed' }));
@@ -157,6 +168,18 @@ export class RestServer {
     });
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ topics: merged }));
+  }
+
+  // v0.4: Agent discovery endpoint
+  private handleAgentsList(res: http.ServerResponse): void {
+    if (!this.wsServer) {
+      res.writeHead(503, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Agent info not available' }));
+      return;
+    }
+    const agents = this.wsServer.getAgentsInfo();
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ agents, count: agents.length }));
   }
 
   private handleMemoryList(res: http.ServerResponse, tagsFilter?: string | null): void {

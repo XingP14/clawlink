@@ -54,7 +54,7 @@ async function main() {
   const wsServer = new WSServer(config, db);
   
   // Start REST API server with access to db, topics, memory
-  const restServer = new RestServer(config, db, wsServer.getTopicsManager(), wsServer.getMemoryPool());
+  const restServer = new RestServer(config, db, wsServer.getTopicsManager(), wsServer.getMemoryPool(), wsServer);
   restServer.start();
   
   console.log('[WoClaw] Server started successfully');
