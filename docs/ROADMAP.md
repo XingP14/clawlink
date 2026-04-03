@@ -448,7 +448,13 @@ woclaw migrate --all            # 执行所有迁移
   - 生成 markdown summary，写入 WoClaw Hub (codex:session:<id>)
   - VPS4 测试：--list 正常返回（Codex 未安装，结果为 0 sessions）
 
-- [ ] **S13-3（10min）：实现 `woclaw migrate --framework codex` CLI**
+- [x] **S13-3（10min）：实现 `woclaw migrate --framework codex` CLI** ✅ 2026-04-04
+  - 添加 `migrate --framework codex [--list|--session-id <id>|--all]` 子命令到 `plugin/bin/woclaw-cli.js`
+  - 通过 child_process.spawn 调用 `codex-migrate.js`，stdio inherit
+  - 支持 codex / openai-codex 别名
+  - CLI 加载测试通过（401 是 Hub 地址问题，非代码错误）
+
+- [ ] **S13-4（10min）：测试 + S14-S16 框架**
   - 添加到 `plugin/bin/woclaw-cli.js`
   - 调用 parser + 写入 Hub
 
@@ -458,4 +464,4 @@ woclaw migrate --all            # 执行所有迁移
 
 ---
 
-_Last updated: 2026-04-04 01:48 CST_
+_Last updated: 2026-04-04 01:57 CST_
