@@ -116,4 +116,63 @@ describe('MemoryPool', () => {
       expect(notifications.length).toBe(0);
     });
   });
+
+  describe('Memory Versioning (v0.4)', () => {
+    it('getVersions returns empty array for new key', () => {
+      mp.write('key1', 'val1', 'agent1');
+      expect(mp.getVersions('key1')).toEqual([]);
+    });
+
+    it('getVersions returns versions when key is updated', () => {
+      mp.write('key1', 'val1', 'agent1');
+      mp.write('key1', 'val2', 'agent2');
+      const versions = mp.getVersions('key1');
+      expect(versions.length).toBe(1);
+      expect(versions[0].value).toBe('val1');
+      expect(versions[0].version).toBe(1);
+      expect(versions[0].updatedBy).toBe('agent1');
+    });
+
+    it('getVersions returns multiple versions in descending order', () => {
+      mp.write('key1', 'v1', 'a1', ['tag1'], 100);
+      mp.write('key1', 'v2', 'a2', ['tag2'], 200);
+      mp.write('key1', 'v3', 'a3', ['tag3'], 300);
+      const versions = mp.getVersions('key1');
+      expect(versions.length).toBe(2);
+      // Newest first
+      expect(versions[0].value).toBe('v2');
+      expect(versions[0].version).toBe(2);
+      expect(versions[0].tags).toEqual(['tag2']);
+      expect(versions[0].ttl).toBe(200);
+      expect(versions[1].value).toBe('v1');
+      expect(versions[1].version).toBe(1);
+      expect(versions[1].tags).toEqual(['tag1']);
+      expect(versions[1].ttl).toBe(100);
+    });
+
+    it('current value is preserved, only old values in versions', () => {
+      mp.write('key1', 'current', 'agent1');
+      mp.write('key1', 'old', 'agent2');
+      const mem = mp.read('key1');
+      expect(mem?.value).toBe('old');
+      expect(mem?.updatedBy).toBe('agent2');
+      const versions = mp.getVersions('key1');
+      expect(versions.length).toBe(1);
+      expect(versions[0].value).toBe('current'); // first value saved as version
+    });
+
+    it('getVersions returns empty for non-existent key', () => {
+      expect(mp.getVersions('nonexistent')).toEqual([]);
+    });
+
+    it('getVersions does not affect other keys', () => {
+      mp.write('key1', 'val1', 'a1');
+      mp.write('key1', 'val2', 'a2');
+      mp.write('key2', 'other', 'a1');
+      const v1 = mp.getVersions('key1');
+      const v2 = mp.getVersions('key2');
+      expect(v1.length).toBe(1);
+      expect(v2.length).toBe(0);
+    });
+  });
 });
