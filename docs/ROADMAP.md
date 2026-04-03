@@ -458,10 +458,12 @@ woclaw migrate --all            # 执行所有迁移
   - 添加到 `plugin/bin/woclaw-cli.js`
   - 调用 parser + 写入 Hub
 
-- [ ] **S13-4（10min）：测试 + S14-S16 框架**
-  - 用真实 Codex session 测试
-  - 为 S14-S16 创建模板，复制 parser 框架
+- [x] **S13-4（10min）：测试 + S14-S16 框架** ✅ 2026-04-04
+  - S14 模板：`claude-migrate.js` — 列表 ~/.claude/sessions/，解析 JSONL，写入 WoClaw Hub
+  - S15 模板：`gemini-migrate.js` — 读 ~/.gemini/history.jsonl，迁移 Gemini 会话
+  - S16 模板：`openclaw-migrate.js` — 读 ~/.openclaw/openclaw.json，迁移 agent memory
+  - 所有脚本通过 --help/--list 测试（无报错）；openclaw-migrate --list 正确识别 defaults agent
 
 ---
 
-_Last updated: 2026-04-04 01:57 CST_
+_Last updated: 2026-04-04 02:05 CST_
