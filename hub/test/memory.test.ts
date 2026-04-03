@@ -117,6 +117,50 @@ describe('MemoryPool', () => {
     });
   });
 
+  describe('Semantic Recall (v0.4)', () => {
+    it('returns empty for stop-word-only query', () => {
+      mp.write('key1', 'the quick brown fox jumps', 'a');
+      expect(mp.recall('the is a').length).toBe(0);
+    });
+
+    it('returns matching entries for keyword query', () => {
+      mp.write('proj', 'my awesome project', 'a', ['project']);
+      mp.write('other', 'something else', 'b');
+      const results = mp.recall('awesome project');
+      expect(results.length).toBeGreaterThan(0);
+      expect(results[0].key).toBe('proj');
+    });
+
+    it('boosts tag matches over value-only matches', () => {
+      mp.write('a', 'nodejs code', 'a', ['backend']);
+      mp.write('b', 'backend server setup', 'b', []);
+      const results = mp.recall('backend');
+      expect(results[0].key).toBe('a'); // tag match scores higher
+    });
+
+    it('applies intent filter to boost related tags', () => {
+      mp.write('a', 'deploy script', 'a', ['devops']);
+      mp.write('b', 'deploy docker container', 'b', ['devops', 'docker']);
+      const results = mp.recall('deploy', 'docker');
+      expect(results[0].key).toBe('b'); // intent=docker boosts docker tag
+    });
+
+    it('respects limit parameter', () => {
+      mp.write('k1', 'apple fruit', 'a');
+      mp.write('k2', 'banana fruit', 'a');
+      mp.write('k3', 'cherry fruit', 'a');
+      mp.write('k4', 'date fruit', 'a');
+      mp.write('k5', 'elderberry', 'a');
+      const results = mp.recall('fruit', undefined, 3);
+      expect(results.length).toBe(3);
+    });
+
+    it('returns empty for non-matching query', () => {
+      mp.write('key1', 'nodejs server', 'a');
+      expect(mp.recall('python django flask elasticsearch').length).toBe(0);
+    });
+  });
+
   describe('Memory Versioning (v0.4)', () => {
     it('getVersions returns empty array for new key', () => {
       mp.write('key1', 'val1', 'agent1');
