@@ -3,6 +3,13 @@
 
 import WebSocket from 'ws';
 import http from 'http';
+import { spawn } from 'child_process';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -143,6 +150,68 @@ async function main() {
           resolve();
         });
       }
+      else if (command === 'migrate') {
+        // woclaw migrate --framework <framework> [options]
+        const fwIdx = args.indexOf('--framework');
+        const framework = fwIdx >= 0 ? args[fwIdx + 1] : null;
+        const otherArgs = args.slice(1).filter(a => !a.startsWith('--framework'));
+
+        if (!framework) {
+          log('Usage: woclaw migrate --framework <framework> [options]');
+          log('Supported: codex, claude-code, gemini-cli, openclaw');
+          ws.close();
+          resolve();
+          return;
+        }
+
+        // Resolve path to codex-migrate.js relative to plugin bin/
+        const migrateScript = join(__dirname, '..', '..', '..', 'packages', 'woclaw-hooks', 'codex-migrate.js');
+        const fullArgs = ['--session-id', 'dummy']; // placeholder, overridden below
+
+        if (framework === 'codex' || framework === 'openai-codex') {
+          // Parse migrate-specific args
+          let migrateArgs = ['--session-id', 'dummy'];
+          const listIdx = otherArgs.indexOf('--list');
+          const allIdx = otherArgs.indexOf('--all');
+          const sidIdx = otherArgs.indexOf('--session-id');
+
+          if (sidIdx >= 0 && sidIdx + 1 < otherArgs.length) {
+            migrateArgs = ['--session-id', otherArgs[sidIdx + 1]];
+          } else if (listIdx >= 0) {
+            migrateArgs = ['--list'];
+          } else if (allIdx >= 0) {
+            migrateArgs = ['--all'];
+            const limIdx = otherArgs.indexOf('--limit');
+            if (limIdx >= 0 && limIdx + 1 < otherArgs.length) {
+              migrateArgs.push('--limit', otherArgs[limIdx + 1]);
+            }
+          } else {
+            log(`Usage: woclaw migrate --framework codex [--list|--session-id <id>|--all [--limit n]]`);
+            ws.close();
+            resolve();
+            return;
+          }
+
+          log(`Running Codex session migration...`);
+          log(`  Script: ${migrateScript}`);
+          log(`  Args: ${migrateArgs.join(' ')}`);
+
+          const child = spawn('node', [migrateScript, ...migrateArgs], {
+            env: { ...process.env, CODEX_HOME: process.env.CODEX_HOME || join(process.env.HOME || '/root', '.codex') },
+            stdio: 'inherit',
+          });
+          child.on('close', (code) => {
+            log(`Migration exited with code ${code}`);
+            ws.close();
+            resolve();
+          });
+        } else {
+          log(`Migrate: framework '${framework}' not yet implemented. Supported: codex`);
+          log('See docs/ROADMAP.md for migration roadmap (S13-S16).');
+          ws.close();
+          resolve();
+        }
+      }
       else if (command === 'shell') {
         // Interactive shell mode
         log('Entering shell mode. Commands: join, leave, send, list, memory-write, memory-read, delegate, delegations, exit');
@@ -177,7 +246,7 @@ async function main() {
       }
       else if (command) {
         log(`Unknown command: ${command}`);
-        log('Commands: join, leave, send, list, memory-write, memory-read, delegate, delegations, shell');
+        log('Commands: join, leave, send, list, memory-write, memory-read, delegate, delegations, migrate, shell');
         ws.close();
         resolve();
       }
