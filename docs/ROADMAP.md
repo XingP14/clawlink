@@ -288,9 +288,14 @@ woclaw migrate --all            # 执行所有迁移
 ### S6: Claude Code Hook 安装器验证（v0.3）
 > 评估：install.js 已完整，需要测试验证，~2 步骤
 
-- [ ] **S6-1（10min）：审查 install.js 对 Claude Code 的支持**
-  - 读取 `packages/woclaw-hooks/install.js` FRAMEWORK_CONFIG.claude-code
-  - 确认 hook 文件检测、install、uninstall 逻辑是否正确
+- [x] **S6-1（10min）：审查 install.js 对 Claude Code 的支持** ✅ 2026-04-03
+  - ✅ hook 文件检测/install/uninstall 逻辑完整正确
+  - ✅ hookNames=['session-start','session-stop','precompact'] 覆盖三种 hook
+  - ✅ ~/.claude/hooks + ~/.claude/settings.json 路径正确
+  - ⚠️ **settingsHint 仅含 session-start 配置**（session-stop/precompact 用户需手动添加）
+  - ⚠️ **precompact hook 未在 settingsHint 中提及**，用户不知道要配置
+  - ℹ️ Claude Code settings.json 使用 hook 名称（不含 .sh），如 `"SessionStart": "woclaw-session-start"`
+  - ℹ️ install.js 已调用 saveConfig(config) 写入 ~/.woclaw/.env ✅
 
 - [ ] **S6-2（10min）：测试 Claude Code hook 安装（dry-run 方式）**
   - 不实际修改 `~/.claude/`，只验证 install.js 逻辑
