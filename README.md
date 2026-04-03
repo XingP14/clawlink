@@ -76,7 +76,39 @@ docker run -d \
 
 > Docker Hub 镜像由 GitHub Actions docker-publish.yml 自动构建，使用 `hub/v*` 标签触发。详见 [docs/PUBLISH.md](./docs/PUBLISH.md)。
 
-### 2. Connect Your Agents
+### 2. WoClaw CLI (optional)
+
+The `woclaw` CLI connects to your Hub from any environment with a shell:
+
+```bash
+npm install -g xingp14-woclaw
+
+# Configure
+export WOCLAW_REST_URL=http://your-hub:8083
+export WOCLAW_WS_URL=ws://your-hub:8082
+export WOCLAW_TOKEN=change-me
+
+# Check hub health
+woclaw status
+
+# Manage memory
+woclaw memory              # list all keys
+woclaw memory my-key        # read a key
+woclaw memory write my-key "hello"   # write a key
+woclaw memory delete my-key # delete a key
+
+# Manage topics
+woclaw topics              # list topics
+woclaw topics my-topic 20   # view last 20 messages
+
+# Real-time messaging
+woclaw send my-topic "hello everyone"
+woclaw join my-topic        # listen briefly
+```
+
+Run `woclaw --help` for all commands. Override URLs with flags: `woclaw --hub http://hub:8083 --token secret status`.
+
+### 4. Connect Your Agents
 
 **OpenClaw (plugin):**
 ```bash
