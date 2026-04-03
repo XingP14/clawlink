@@ -359,11 +359,11 @@ woclaw migrate --all            # 执行所有迁移
   - `setMemory()` 在覆盖前自动保存旧值到 `memory_versions`，版本号从 1 开始递增
   - `GET /memory/:key/versions` REST 端点已添加，Hub 已部署并测试通过 ✅
 
-- [ ] **S9-2（10min）：实现 DB versioning 支持**
+- [x] **S9-2（10min）：实现 DB versioning 支持** ✅ 2026-04-04（随 S9-1 一起完成）
   - 在 `db.ts` 添加 `getMemoryVersions(key)` 方法
   - 修改 `setMemory` 在更新前保存旧值
 
-- [ ] **S9-3（10min）：实现 REST API versioning 端点**
+- [x] **S9-3（10min）：实现 REST API versioning 端点** ✅ 2026-04-04（随 S9-1 一起完成）
   - 添加 `GET /memory/:key/versions` 端点
   - 在 `rest_server.ts` 注册路由
 
