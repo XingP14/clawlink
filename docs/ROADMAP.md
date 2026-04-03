@@ -243,7 +243,11 @@ woclaw migrate --all            # 执行所有迁移
 ### S4: vm153 plugin 验证（v0.2）
 > 评估：需要 SSH + 操作，~3 步骤
 
-- [ ] **S4-1（10min）：SSH 检查 vm153 当前状态**
+- [x] **S4-1（10min）：SSH 检查 vm153 当前状态** ✅ 2026-04-03
+  - `openclaw status` + `openclaw channels list` 执行完毕
+  - 结果：plugin 已安装（`ls ~/.openclaw/extensions/` 含 woclaw），channel "WoClaw default: configured, enabled" ✅
+  - WoClaw Hub 连接：ws://192.168.102.153:8082，已认证为 vm153 ✅
+  - 注：vm153 自连存在 1006 异常关闭后重连（循环依赖，Hub 和 plugin 同机），功能正常
   - `ssh -i ~/.ssh/id_ed25519 root@vm153 openclaw status`
   - 检查 woclaw plugin 是否已安装（`~/.openclaw/extensions/`）
   - 检查 channel 状态
@@ -416,4 +420,4 @@ woclaw migrate --all            # 执行所有迁移
 
 ---
 
-_Last updated: 2026-04-03 20:05 CST_
+_Last updated: 2026-04-03 20:18 CST_
