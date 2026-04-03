@@ -131,6 +131,9 @@ export class RestServer {
           res.writeHead(405);
           res.end(JSON.stringify({ error: 'Method not allowed' }));
         }
+      // v0.4: Delegation REST endpoints
+      } else if (path === '/delegations' || path.startsWith('/delegations')) {
+        this.handleDelegations(req, res, url, path, method);
       } else {
         res.writeHead(404);
         res.end(JSON.stringify({ error: 'Not found' }));
@@ -318,6 +321,135 @@ export class RestServer {
         updatedBy: m.updatedBy,
       }))
     }));
+  }
+
+  // v0.4: Delegation REST API dispatcher
+  private handleDelegations(req: http.IncomingMessage, res: http.ServerResponse, url: URL, path: string, method: string): void {
+    if (!this.wsServer) {
+      res.writeHead(503, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Delegation not available' }));
+      return;
+    }
+
+    // GET /delegations/pending?agentId=X
+    if (path === '/delegations/pending' && method === 'GET') {
+      const agentId = url.searchParams.get('agentId');
+      if (!agentId) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'agentId query param required' }));
+        return;
+      }
+      const pending = this.wsServer.getDelegations({ toAgent: agentId })
+        .filter(d => d.status === 'requested' || d.status === 'accepted' || d.status === 'running');
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ delegations: pending, count: pending.length }));
+      return;
+    }
+
+    // GET /delegations — list all (with optional filters)
+    if (path === '/delegations' && method === 'GET') {
+      const fromAgent = url.searchParams.get('fromAgent') ?? undefined;
+      const toAgent = url.searchParams.get('toAgent') ?? undefined;
+      const status = url.searchParams.get('status') ?? undefined;
+      const all = this.wsServer.getDelegations({ fromAgent, toAgent, status: status || undefined });
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ delegations: all, count: all.length }));
+      return;
+    }
+
+    // POST /delegations — create delegation (REST → WebSocket routing)
+    if (path === '/delegations' && method === 'POST') {
+      let body = '';
+      req.on('data', chunk => { body += chunk; });
+      req.on('end', () => {
+        try {
+          const { id, toAgent, task, topic } = JSON.parse(body);
+          if (!id || !toAgent || !task) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'id, toAgent, task required' }));
+            return;
+          }
+          // Use a dummy fromAgent for REST-created delegations
+          const fromAgent = 'rest-api';
+          const delegation: import('./types.js').Delegation = {
+            id,
+            fromAgent,
+            toAgent,
+            task,
+            topic,
+            status: 'requested',
+            progress: 0,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          };
+          this.wsServer.createDelegation(delegation);
+          this.wsServer.sendToAgent(toAgent, {
+            type: 'delegate_incoming',
+            id,
+            fromAgent,
+            task,
+            topic,
+            createdAt: delegation.createdAt,
+          } as import('./types.js').OutboundMessage);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: true, id, status: 'requested' }));
+        } catch (e: any) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: e.message }));
+        }
+      });
+      return;
+    }
+
+    // GET /delegations/:id
+    const delegMatch = path.match(/^\/delegations\/(.+)$/);
+    if (delegMatch && method === 'GET') {
+      const id = delegMatch[1];
+      const d = this.wsServer.getDelegation(id);
+      if (!d) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Delegation not found' }));
+        return;
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ delegation: d }));
+      return;
+    }
+
+    // DELETE /delegations/:id — cancel
+    if (delegMatch && method === 'DELETE') {
+      const id = delegMatch[1];
+      const d = this.wsServer.getDelegation(id);
+      if (!d) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Delegation not found' }));
+        return;
+      }
+      // Update in-memory directly (REST-side cancel)
+      d.status = 'cancelled';
+      d.updatedAt = Date.now();
+      // Notify both parties via WS
+      this.wsServer.sendToAgent(d.toAgent, {
+        type: 'delegate_status',
+        id,
+        status: 'cancelled',
+        updatedAt: d.updatedAt,
+      } as import('./types.js').OutboundMessage);
+      if (d.fromAgent !== d.toAgent) {
+        this.wsServer.sendToAgent(d.fromAgent, {
+          type: 'delegate_status',
+          id,
+          status: 'cancelled',
+          updatedAt: d.updatedAt,
+        } as import('./types.js').OutboundMessage);
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: true, delegation: d }));
+      return;
+    }
+
+    res.writeHead(405, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Method not allowed for this path' }));
   }
 
   private handleTopicMessages(res: http.ServerResponse, topic: string, limit?: string | null): void {

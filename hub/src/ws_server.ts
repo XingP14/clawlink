@@ -394,6 +394,14 @@ export class WSServer {
     return result;
   }
 
+  // v0.4: Send raw message to a specific connected agent (for REST API delegation routing)
+  sendToAgent(agentId: string, msg: OutboundMessage): boolean {
+    const agent = this.agents.get(agentId);
+    if (!agent || agent.ws.readyState !== 1) return false;
+    this.send(agent.ws, msg);
+    return true;
+  }
+
   getTopicsManager(): TopicsManager {
     return this.topics;
   }
@@ -579,6 +587,11 @@ export class WSServer {
     // Notify both parties
     this.sendDelegationUpdate(delegation.id, delegation.fromAgent);
     this.sendDelegationUpdate(delegation.id, delegation.toAgent);
+  }
+
+  // v0.4: Delegation - create delegation from REST API
+  createDelegation(d: import('./types.js').Delegation): void {
+    this.delegations.set(d.id, d);
   }
 
   // v0.4: Delegation - send status update to a specific agent
