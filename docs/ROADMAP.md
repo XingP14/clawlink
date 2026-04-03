@@ -413,9 +413,10 @@ woclaw migrate --all            # 执行所有迁移
   - 确定 Hub 侧状态存储方式
   - 输出：`docs/S12-1-DELEGATION-PROTOCOL.md` + `hub/src/types.ts` delegation types
 
-- [ ] **S12-2（10min）：实现 delegation 消息路由**
+- [x] **S12-2（10min）：实现 delegation 消息路由** ✅ 2026-04-04
   - 在 `ws_server.ts` 处理 `delegate` 消息类型
   - 将 delegation 转发给目标 agent
+  - Hub SIGUSR1 重启完成，delegations.size 已纳入 stats
 
 - [ ] **S12-3（10min）：实现委托状态跟踪**
   - 添加 `delegations` Map 存储状态
