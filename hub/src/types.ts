@@ -29,13 +29,26 @@ export interface Message {
 
 // Inbound messages from clients
 export interface InboundMessage {
-  type: 'message' | 'join' | 'leave' | 'memory_write' | 'memory_read' | 'topics_list' | 'topic_members' | 'ping';
+  type: 'message' | 'join' | 'leave' | 'memory_write' | 'memory_read' | 'topics_list' | 'topic_members' | 'ping'
+       | 'delegate_request' | 'delegate_response' | 'delegate_progress' | 'delegate_result' | 'delegate_cancel';
   topic?: string;
   content?: string;
   key?: string;
   value?: any;
   tags?: string[];  // v0.4: optional tags for memory entries
   ttl?: number;    // v0.4: optional TTL in seconds (0 = no expiry)
+  // delegation fields
+  id?: string;
+  task?: DelegationTask;
+  toAgent?: string;
+  status?: 'accepted' | 'rejected' | 'done' | 'failed';
+  note?: string;
+  progress?: number;
+  message?: string;
+  result?: any;
+  error?: string;
+  summary?: string;
+  reason?: string;
 }
 
 // Outbound messages to clients

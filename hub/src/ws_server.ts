@@ -17,6 +17,7 @@ export class WSServer {
   private db: ClawDB;
   private config: Config;
   private pingInterval: NodeJS.Timeout | null = null;
+  private delegations: Map<string, import('./types.js').Delegation> = new Map();
 
   constructor(config: Config, db: ClawDB) {
     this.config = config;
@@ -150,6 +151,26 @@ export class WSServer {
 
       case 'ping':
         this.send(agent.ws, { type: 'pong', timestamp: Date.now() });
+        break;
+
+      case 'delegate_request':
+        this.handleDelegateRequest(agentId, msg);
+        break;
+
+      case 'delegate_response':
+        this.handleDelegateResponse(agentId, msg);
+        break;
+
+      case 'delegate_progress':
+        this.handleDelegateProgress(agentId, msg);
+        break;
+
+      case 'delegate_result':
+        this.handleDelegateResult(agentId, msg);
+        break;
+
+      case 'delegate_cancel':
+        this.handleDelegateCancel(agentId, msg);
         break;
 
       default:
@@ -357,7 +378,20 @@ export class WSServer {
       agents: this.agents.size,
       topics: this.topics.getStats(),
       memory: this.memory.getAll().length,
+      delegations: this.delegations.size,
     };
+  }
+
+  getDelegation(id: string): import('./types.js').Delegation | undefined {
+    return this.delegations.get(id);
+  }
+
+  getDelegations(filters?: { fromAgent?: string; toAgent?: string; status?: string }): import('./types.js').Delegation[] {
+    let result = Array.from(this.delegations.values());
+    if (filters?.fromAgent) result = result.filter(d => d.fromAgent === filters.fromAgent);
+    if (filters?.toAgent) result = result.filter(d => d.toAgent === filters.toAgent);
+    if (filters?.status) result = result.filter(d => d.status === filters.status);
+    return result;
   }
 
   getTopicsManager(): TopicsManager {
@@ -366,6 +400,204 @@ export class WSServer {
 
   getMemoryPool(): MemoryPool {
     return this.memory;
+  }
+
+  // v0.4: Delegation - handle delegate_request
+  private handleDelegateRequest(fromAgent: string, msg: import('./types.js').InboundMessage): void {
+    const id = msg.id;
+    const toAgent = msg.toAgent;
+    if (!id || !toAgent || !msg.task) {
+      const agent = this.agents.get(fromAgent);
+      if (agent) this.sendError(agent.ws, 'missing_fields', 'id, toAgent, task required for delegate_request');
+      return;
+    }
+
+    // Store delegation
+    const delegation: import('./types.js').Delegation = {
+      id,
+      fromAgent,
+      toAgent,
+      task: msg.task as import('./types.js').DelegationTask,
+      topic: msg.topic,
+      status: 'requested',
+      progress: 0,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    this.delegations.set(id, delegation);
+
+    // Notify target agent
+    const target = this.agents.get(toAgent);
+    if (target && target.ws.readyState === 1) {
+      this.send(target.ws, {
+        type: 'delegate_incoming',
+        id,
+        fromAgent,
+        task: msg.task,
+        topic: msg.topic,
+        createdAt: delegation.createdAt,
+      } as OutboundMessage);
+    } else {
+      // Target not connected — reject immediately
+      delegation.status = 'rejected';
+      delegation.note = 'Target agent not connected';
+      delegation.updatedAt = Date.now();
+      this.sendDelegationUpdate(id, fromAgent);
+      return;
+    }
+
+    // Confirm to delegator
+    const agent = this.agents.get(fromAgent);
+    if (agent && agent.ws.readyState === 1) {
+      this.send(agent.ws, {
+        type: 'delegate_status',
+        id,
+        status: 'requested',
+        updatedAt: delegation.updatedAt,
+      } as OutboundMessage);
+    }
+  }
+
+  // v0.4: Delegation - handle delegate_response (accept/reject)
+  private handleDelegateResponse(agentId: string, msg: import('./types.js').InboundMessage): void {
+    const delegation = this.delegations.get(msg.id ?? '');
+    if (!delegation) {
+      const agent = this.agents.get(agentId);
+      if (agent) this.sendError(agent.ws, 'not_found', `Delegation ${msg.id} not found`);
+      return;
+    }
+    if (delegation.toAgent !== agentId) {
+      const agent = this.agents.get(agentId);
+      if (agent) this.sendError(agent.ws, 'forbidden', 'You are not the target of this delegation');
+      return;
+    }
+    if (delegation.status !== 'requested') {
+      const agent = this.agents.get(agentId);
+      if (agent) this.sendError(agent.ws, 'invalid_state', `Delegation already ${delegation.status}`);
+      return;
+    }
+
+    const newStatus = msg.status === 'accepted' ? 'accepted' : 'rejected';
+    delegation.status = newStatus;
+    delegation.note = msg.note;
+    delegation.updatedAt = Date.now();
+    if (newStatus === 'accepted') delegation.acceptedAt = Date.now();
+
+    // Notify delegator
+    this.sendDelegationUpdate(delegation.id, delegation.fromAgent);
+  }
+
+  // v0.4: Delegation - handle delegate_progress
+  private handleDelegateProgress(agentId: string, msg: import('./types.js').InboundMessage): void {
+    const delegation = this.delegations.get(msg.id ?? '');
+    if (!delegation || delegation.toAgent !== agentId) {
+      const agent = this.agents.get(agentId);
+      if (agent) this.sendError(agent.ws, 'not_found', `Delegation ${msg.id} not found or not yours`);
+      return;
+    }
+    delegation.progress = msg.progress ?? delegation.progress;
+    delegation.updatedAt = Date.now();
+    if (delegation.status === 'accepted') delegation.status = 'running';
+
+    this.sendDelegationUpdate(delegation.id, delegation.fromAgent);
+  }
+
+  // v0.4: Delegation - handle delegate_result
+  private handleDelegateResult(agentId: string, msg: import('./types.js').InboundMessage): void {
+    const delegation = this.delegations.get(msg.id ?? '');
+    if (!delegation || delegation.toAgent !== agentId) {
+      const agent = this.agents.get(agentId);
+      if (agent) this.sendError(agent.ws, 'not_found', `Delegation ${msg.id} not found or not yours`);
+      return;
+    }
+    delegation.status = msg.status === 'done' ? 'done' : 'failed';
+    delegation.result = msg.result;
+    delegation.error = msg.error;
+    delegation.summary = msg.summary;
+    delegation.progress = 100;
+    delegation.completedAt = Date.now();
+    delegation.updatedAt = Date.now();
+
+    // Publish result to topic if specified
+    if (delegation.topic) {
+      this.db.saveMessage({
+        id: uuidv4(),
+        topic: delegation.topic,
+        from: agentId,
+        content: JSON.stringify({ delegationId: delegation.id, result: delegation.result, summary: delegation.summary }),
+        timestamp: Date.now(),
+      });
+      const recipients = this.topics.broadcast(delegation.topic, {
+        id: uuidv4(),
+        type: 'message',
+        topic: delegation.topic,
+        from: agentId,
+        content: JSON.stringify({ delegationId: delegation.id, result: delegation.result, summary: delegation.summary }),
+        timestamp: Date.now(),
+      });
+      for (const rid of recipients) {
+        const r = this.agents.get(rid);
+        if (r && r.ws.readyState === 1) {
+          this.send(r.ws, {
+            id: uuidv4(),
+            type: 'message',
+            topic: delegation.topic,
+            from: agentId,
+            content: JSON.stringify({ delegationId: delegation.id, result: delegation.result, summary: delegation.summary }),
+            timestamp: Date.now(),
+          } as OutboundMessage);
+        }
+      }
+    }
+
+    this.sendDelegationUpdate(delegation.id, delegation.fromAgent);
+  }
+
+  // v0.4: Delegation - handle delegate_cancel
+  private handleDelegateCancel(agentId: string, msg: import('./types.js').InboundMessage): void {
+    const delegation = this.delegations.get(msg.id ?? '');
+    if (!delegation) {
+      const agent = this.agents.get(agentId);
+      if (agent) this.sendError(agent.ws, 'not_found', `Delegation ${msg.id} not found`);
+      return;
+    }
+    if (delegation.fromAgent !== agentId) {
+      const agent = this.agents.get(agentId);
+      if (agent) this.sendError(agent.ws, 'forbidden', 'Only the delegator can cancel');
+      return;
+    }
+    if (!['requested', 'accepted', 'running'].includes(delegation.status)) {
+      const agent = this.agents.get(agentId);
+      if (agent) this.sendError(agent.ws, 'invalid_state', `Cannot cancel delegation in ${delegation.status} state`);
+      return;
+    }
+
+    delegation.status = 'cancelled';
+    delegation.note = msg.reason ?? 'Cancelled by delegator';
+    delegation.updatedAt = Date.now();
+
+    // Notify both parties
+    this.sendDelegationUpdate(delegation.id, delegation.fromAgent);
+    this.sendDelegationUpdate(delegation.id, delegation.toAgent);
+  }
+
+  // v0.4: Delegation - send status update to a specific agent
+  private sendDelegationUpdate(delegationId: string, toAgentId: string): void {
+    const delegation = this.delegations.get(delegationId);
+    if (!delegation) return;
+    const target = this.agents.get(toAgentId);
+    if (!target || target.ws.readyState !== 1) return;
+    this.send(target.ws, {
+      type: 'delegate_status',
+      id: delegation.id,
+      status: delegation.status,
+      progress: delegation.progress,
+      result: delegation.result,
+      error: delegation.error,
+      summary: delegation.summary,
+      note: delegation.note,
+      updatedAt: delegation.updatedAt,
+    } as OutboundMessage);
   }
 
   // v0.4: Agent discovery - return connected agents info
