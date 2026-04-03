@@ -115,7 +115,8 @@ woclaw migrate --all            # 执行所有迁移
 
 ### 文档
 - [x] Hook 集成指南 — Claude Code（`docs/CLAUDE-CODE-HOOKS.md`）✅ 2026-04-04
-- [ ] Hook 集成指南 — Gemini CLI / Codex CLI / OpenCode
+- [x] Hook 集成指南 — Gemini CLI（`docs/GEMINI-CLI-HOOKS.md`）✅ 2026-04-04
+- [ ] Hook 集成指南 — Codex CLI / OpenCode
 - [ ] MCP Server 使用文档
 - [ ] 视频演示
 
@@ -463,4 +464,4 @@ woclaw migrate --all            # 执行所有迁移
 
 ---
 
-_Last updated: 2026-04-04 02:10 CST_
+_Last updated: 2026-04-04 02:20 CST_
