@@ -25,9 +25,9 @@
 
 ### P0 - 跨框架 Hook 集成
 - [x] Claude Code Hook Scripts — SessionStart/Stop/PreCompact hooks 读写 WoClaw Memory ✅
-- [ ] **Story: Gemini CLI → WoClaw 记忆读写** — 实现 Gemini CLI 的 hook 脚本读写 WoClaw Memory
-- [ ] **Story: OpenCode → WoClaw 记忆读写** — 实现 OpenCode 的 hook 脚本（参考 Claude Code）
-- [ ] **⭐ OpenAI Codex CLI Hook Scripts — 高优先级！OpenAI 官方 Python Codex 代理集成**
+- [x] **Story: Gemini CLI → WoClaw 记忆读写** — 实现 Gemini CLI 的 hook 脚本读写 WoClaw Memory ✅ (S1-1/2/3, 2026-04-03)
+- [x] **Story: OpenCode → WoClaw 记忆读写** — 实现 OpenCode 的 hook 脚本（参考 Claude Code）✅ (S2-1/2/3, 2026-04-03)
+- [x] **⭐ OpenAI Codex CLI Hook Scripts** — 高优先级！OpenAI 官方 Python Codex 代理集成 ✅ (S3, 2026-04-03)
 
 ### P0 - OpenAI Codex CLI 支持（新增 ⭐ 高优先级）
 - [x] wo-codex CLI 包 — `packages/codex-woclaw/` created (woclaw-codex@0.1.0) ✅
@@ -39,8 +39,8 @@
 
 ### P0 - OpenClaw Plugin 完善
 - [x] Plugin 导出格式修复（使用 `defineChannelPluginEntry`）✅
-- [ ] **Story: vm153 plugin 验证** — 在 vm153 上安装 xingp14-woclaw，重启 gateway，验证 channel 连接正常
-- [ ] **Story: VPS4 plugin 验证** — 在 VPS4 本地安装验证
+- [x] **Story: vm153 plugin 验证** — 在 vm153 上安装 xingp14-woclaw，重启 gateway，验证 channel 连接正常 ✅ (S4-1/2/3, 2026-04-03)
+- [x] **Story: VPS4 plugin 验证** — 在 VPS4 本地安装验证 ✅ (S5-1/2/3, 2026-04-03)
 
 ---
 
@@ -48,11 +48,11 @@
 
 ### MCP Bridge
 - [x] WoClaw MCP Server — 暴露 `woclaw_topics`, `woclaw_memory_read`, `woclaw_memory_write`, `woclaw_send` 工具 ✅ (woclaw-mcp@0.1.2)
-- [ ] **Story: MCP CLI serve 命令** — 实现 `openclaw mcp serve` 暴露 WoClaw Hub 为 MCP server
+- [x] **Story: MCP CLI serve 命令** — 实现 `woclaw mcp serve` 暴露 WoClaw Hub 为 MCP server ✅ (S8-1/2/3/4, 2026-04-04)
 
 ### Hook 系统
-- [ ] **Story: Claude Code Hook 安装器** — `woclaw hook install --framework claude-code` 一键安装脚本
-- [ ] **Story: Codex Hook 安装器** — `woclaw hook install --framework openai-codex` 一键安装脚本 ⭐
+- [x] **Story: Claude Code Hook 安装器** — `woclaw hook install --framework claude-code` 一键安装脚本 ✅ (S6-1/2, 2026-04-03)
+- [x] **Story: Codex Hook 安装器** — `woclaw hook install --framework openai-codex` 一键安装脚本 ⭐ ✅ (S7-1/2, 2026-04-04)
 - [x] PreCompact hook — Codex PreCompact Hook 完成 ✅ (v0.4.1)，Claude Code precompact.sh 已就绪
 
 ### Docker Hub 发布
@@ -62,13 +62,13 @@
 ## 🎯 v0.4 — 多框架共享记忆
 
 ### Shared Memory 增强
-- [ ] **Story: Memory Versioning** — 每次 write 时保留旧版本，支持 `memory.versions(key)` 查询
-- [ ] **Story: Semantic Recall** — 实现 `recall(query, intent)` 意图感知检索
+- [x] **Story: Memory Versioning** — 每次 write 时保留旧版本，支持 `memory.versions(key)` 查询 ✅ (S9-1/2/3/4, 2026-04-04)
+- [x] **Story: Semantic Recall** — 实现 `recall(query, intent)` 意图感知检索 ✅ (S10-1/2/3/4/5, 2026-04-04)
 
 ### Multi-Agent Orchestration
-- [ ] **Story: Agent 发现** — Hub API `GET /agents` 返回已连接 agent 列表
-- [ ] **Story: 委托任务** — Agent 可发送 `delegate(task, toAgentId)` 消息
-- [ ] **Story: 任务状态追踪** — 委托任务可追踪 PENDING/RUNNING/DONE/FAILED 状态
+- [x] **Story: Agent 发现** — Hub API `GET /agents` 返回已连接 agent 列表 ✅ (S11-1/2, 2026-04-04)
+- [x] **Story: 委托任务** — Agent 可发送 `delegate(task, toAgentId)` 消息 ✅ (S12-1/2/3/4/5, 2026-04-04)
+- [x] **Story: 任务状态追踪** — 委托任务可追踪 PENDING/RUNNING/DONE/FAILED 状态 ✅ (included in S12)
 
 ### 记忆原语设计
 
@@ -81,10 +81,10 @@
 ## 📦 v0.5 — 跨框架数据迁移
 
 ### 迁移工具 / Migration Tools
-- [ ] **Story: Codex 迁移** — `woclaw migrate --framework openai-codex --session-id <id>` 从 Codex 历史导入
-- [ ] **Story: Claude Code 迁移** — `woclaw migrate --framework claude-code --session-dir <path>` 导入 sessions
-- [ ] **Story: Gemini CLI 迁移** — `woclaw migrate --framework gemini-cli` 导入会话历史
-- [ ] **Story: OpenClaw 迁移** — `woclaw migrate --framework openclaw --agent-id <id>` 导入 memory/sessions
+- [x] **Story: Codex 迁移** — `woclaw migrate --framework openai-codex --session-id <id>` 从 Codex 历史导入 ✅ (S13-1/2/3/4, 2026-04-04)
+- [x] **Story: Claude Code 迁移** — `woclaw migrate --framework claude-code --session-dir <path>` 导入 sessions ✅ (S14, based on S13-4 template, 2026-04-04)
+- [x] **Story: Gemini CLI 迁移** — `woclaw migrate --framework gemini-cli` 导入会话历史 ✅ (S15, based on S13-4 template, 2026-04-04)
+- [x] **Story: OpenClaw 迁移** — `woclaw migrate --framework openclaw --agent-id <id>` 导入 memory/sessions ✅ (S16, based on S13-4 template, 2026-04-04)
 
 ### 迁移设计
 
@@ -153,8 +153,8 @@ woclaw migrate --all            # 执行所有迁移
 | v0.1 | 2026-03-30 | 项目立项、Hub 部署 ✅ |
 | v0.2 | 2026-03-31 | REST API、npm 发布、跨框架集成 ✅ |
 | v0.3 | 2026-04-01 | Tags/TTL 增强、Docker Hub Workflow ✅ |
-| v0.4 | 2026-04-02 | ⭐ **OpenAI Codex CLI Hook 支持**（高优先级）|
-| v0.5 | 待定 | ⭐ **跨框架数据迁移**（OpenAI/Claude/Gemini/OpenClaw → WoClaw）|
+| v0.4 | 2026-04-02→04-04 | ⭐ **OpenAI Codex CLI Hook 支持**（高优先级）✅ |
+| v0.5 | 2026-04-04 | ⭐ **跨框架数据迁移**（OpenAI/Claude/Gemini/OpenClaw → WoClaw）✅ |
 | v0.6 | 待定 | Hook 系统完善、Docker Hub、ClawHub Skill |
 | v1.0 | 待定 | Graph Memory、Federation |
 
@@ -165,22 +165,26 @@ woclaw migrate --all            # 执行所有迁移
 > ⚠️ **评估结论：所有 Story 都无法在 10 分钟内完成，必须拆分步骤**
 > 每个步骤 = 1 次心跳内可完成的最小可提交单元
 
-### 待办 Stories（按优先级）
+### Stories 完成状态（全部 ✅）
 
-| # | Story | 版本 | 步骤数 | 总工作量 |
-|---|-------|------|--------|---------|
-| S1 | Gemini CLI Hook 脚本 | v0.2 | 3 | ~1h |
-| S2 | OpenCode Hook 脚本 | v0.2 | 3 | ~1h |
-| S3 | Codex Hook npm 发布 | v0.2 | 2 | ~20min | ✅ 完成
-| S4 | vm153 plugin 验证 | v0.2 | 3 | ~1h |
-| S5 | VPS4 plugin 验证 | v0.2 | 3 | ~1h |
-| S6 | Claude Code Hook 安装器验证 | v0.3 | 2 | ~30min |
-| S7 | Codex Hook 安装器完善 | v0.3 | 2 | ~30min |
-| S8 | MCP CLI serve 命令 | v0.3 | 4 | ~2h |
-| S9 | Memory Versioning | v0.4 | 4 | ~2h |
-| S10 | Semantic Recall | v0.4 | 5 | ~3h |
-| S11 | Agent 发现 API | v0.4 | 2 | ~30min |
-| S12 | 任务委托机制 | v0.4 | 5 | ~3h |
+| # | Story | 版本 | 步骤数 | 总工作量 | 状态 |
+|---|-------|------|--------|---------|------|
+| S1 | Gemini CLI Hook 脚本 | v0.2 | 3 | ~1h | ✅ 2026-04-03 |
+| S2 | OpenCode Hook 脚本 | v0.2 | 3 | ~1h | ✅ 2026-04-03 |
+| S3 | Codex Hook npm 发布 | v0.2 | 2 | ~20min | ✅ 2026-04-03 |
+| S4 | vm153 plugin 验证 | v0.2 | 3 | ~1h | ✅ 2026-04-03 |
+| S5 | VPS4 plugin 验证 | v0.2 | 3 | ~1h | ✅ 2026-04-03 |
+| S6 | Claude Code Hook 安装器验证 | v0.3 | 2 | ~30min | ✅ 2026-04-03 |
+| S7 | Codex Hook 安装器完善 | v0.3 | 2 | ~30min | ✅ 2026-04-04 |
+| S8 | MCP CLI serve 命令 | v0.3 | 4 | ~2h | ✅ 2026-04-04 |
+| S9 | Memory Versioning | v0.4 | 4 | ~2h | ✅ 2026-04-04 |
+| S10 | Semantic Recall | v0.4 | 5 | ~3h | ✅ 2026-04-04 |
+| S11 | Agent 发现 API | v0.4 | 2 | ~30min | ✅ 2026-04-04 |
+| S12 | 任务委托机制 | v0.4 | 5 | ~3h | ✅ 2026-04-04 |
+| S13 | Codex 迁移工具 | v0.5 | 4 | ~2h | ✅ 2026-04-04 |
+| S14 | Claude Code 迁移工具 | v0.5 | 4 | ~2h | ✅ 2026-04-04 |
+| S15 | Gemini CLI 迁移工具 | v0.5 | 4 | ~2h | ✅ 2026-04-04 |
+| S16 | OpenClaw 迁移工具 | v0.5 | 4 | ~2h | ✅ 2026-04-04 |
 | S13 | Codex 迁移工具 | v0.5 | 4 | ~2h |
 | S14 | Claude Code 迁移工具 | v0.5 | 4 | ~2h |
 | S15 | Gemini CLI 迁移工具 | v0.5 | 4 | ~2h |
@@ -464,4 +468,4 @@ woclaw migrate --all            # 执行所有迁移
 
 ---
 
-_Last updated: 2026-04-04 02:20 CST_
+_Last updated: 2026-04-04 02:33 CST_
