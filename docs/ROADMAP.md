@@ -367,9 +367,9 @@ woclaw migrate --all            # 执行所有迁移
   - 添加 `GET /memory/:key/versions` 端点
   - 在 `rest_server.ts` 注册路由
 
-- [ ] **S9-4（10min）：添加单元测试**
-  - 在 `hub/test/memory.test.ts` 添加 versioning 测试
-  - 运行 `npm test` 验证
+- [x] **S9-4（10min）：添加单元测试** ✅ 2026-04-04
+  - 在 `hub/test/memory.test.ts` 添加 6 个 versioning 测试用例
+  - `npm test` → 52/52 passed ✅
 
 ### S10: Semantic Recall（v0.4）
 > 评估：最复杂，~5 步骤
