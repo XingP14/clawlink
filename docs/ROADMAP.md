@@ -34,7 +34,7 @@
 - [x] SessionStart Hook — `session_start.py` reads from WoClaw Hub REST API ✅
 - [x] SessionStop Hook — `stop.py` reads transcript + writes summary to WoClaw Hub ✅
 - [x] PreCompact Hook — Codex 上下文压缩前将关键信息写入 memory ✅ v0.1.2
-- [ ] **Story: Codex Hook npm 发布** — `woclaw-codex` npm publish --access public
+- [x] **Story: Codex Hook npm 发布** — `woclaw-codex@0.1.2` npm 发布 ✅ 2026-04-03
 - [x] 环境变量配置：`WOCLAW_HUB_URL` + `WOCLAW_TOKEN` ✅
 
 ### P0 - OpenClaw Plugin 完善
@@ -169,7 +169,7 @@ woclaw migrate --all            # 执行所有迁移
 |---|-------|------|--------|---------|
 | S1 | Gemini CLI Hook 脚本 | v0.2 | 3 | ~1h |
 | S2 | OpenCode Hook 脚本 | v0.2 | 3 | ~1h |
-| S3 | Codex Hook npm 发布 | v0.2 | 2 | ~20min |
+| S3 | Codex Hook npm 发布 | v0.2 | 2 | ~20min | ✅ 完成
 | S4 | vm153 plugin 验证 | v0.2 | 3 | ~1h |
 | S5 | VPS4 plugin 验证 | v0.2 | 3 | ~1h |
 | S6 | Claude Code Hook 安装器验证 | v0.3 | 2 | ~30min |
@@ -228,17 +228,17 @@ woclaw migrate --all            # 执行所有迁移
   - 输出：`docs/OPENCODE-INTEGRATION.md` 集成指南
 
 ### S3: Codex Hook npm 发布（v0.2）
-> 评估：package.json 已就绪，~2 步骤
+> 评估：package.json 已就绪，~2 步骤 ✅ 已完成
 
-- [ ] **S3-1（10min）：审查并完善 woclaw-codex package**
-  - 检查 package.json files/bin 字段是否完整
-  - 确认 README.md 是否需要更新
-  - 运行 `npm pack --dry-run` 验证打包内容
+- [x] **S3-1（10min）：审查并完善 woclaw-codex package** ✅ 2026-04-03
+  - ✅ package.json files/bin 字段完整（*.py, install.py, bin/cli.js）
+  - ✅ README.md 内容完整，包含安装说明和环境变量说明
+  - ✅ `npm pack --dry-run` 验证通过，7 个文件打包正确
 
-- [ ] **S3-2（10min）：执行 npm publish**
-  - `cd packages/codex-woclaw && HOME=/tmp npm publish --access public`
-  - 验证：`npm view woclaw-codex`
-  - 更新 ROADMAP.md 标记 S3 完成
+- [x] **S3-2（10min）：执行 npm publish** ✅ 2026-04-03
+  - ✅ `woclaw-codex@0.1.2` 已发布至 npm（https://www.npmjs.com/package/woclaw-codex）
+  - ✅ `npm view woclaw-codex` 验证通过
+  - ✅ 更新 ROADMAP.md
 
 ### S4: vm153 plugin 验证（v0.2）
 > 评估：需要 SSH + 操作，~3 步骤
@@ -416,4 +416,4 @@ woclaw migrate --all            # 执行所有迁移
 
 ---
 
-_Last updated: 2026-04-03 19:20 CST_
+_Last updated: 2026-04-03 20:05 CST_
