@@ -454,10 +454,6 @@ woclaw migrate --all            # 执行所有迁移
   - 支持 codex / openai-codex 别名
   - CLI 加载测试通过（401 是 Hub 地址问题，非代码错误）
 
-- [ ] **S13-4（10min）：测试 + S14-S16 框架**
-  - 添加到 `plugin/bin/woclaw-cli.js`
-  - 调用 parser + 写入 Hub
-
 - [x] **S13-4（10min）：测试 + S14-S16 框架** ✅ 2026-04-04
   - S14 模板：`claude-migrate.js` — 列表 ~/.claude/sessions/，解析 JSONL，写入 WoClaw Hub
   - S15 模板：`gemini-migrate.js` — 读 ~/.gemini/history.jsonl，迁移 Gemini 会话
