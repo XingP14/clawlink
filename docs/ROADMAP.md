@@ -222,9 +222,10 @@ woclaw migrate --all            # 执行所有迁移
   - 方案A（推荐）：文档引导用户安装 oh-my-opencode，WoClaw hooks 自动生效
   - 方案B：自建 woclaw-opencode 原生 plugin（长期方案）
 
-- [ ] **S2-3（10min）：设计 OpenCode WoClaw plugin 方案**
-  - 方案A：写集成文档（OpenCode + oh-my-opencode + WoClaw）
-  - 方案B：设计 woclaw-opencode 原生 npm 插件架构（参考 opencode-supermemory）
+- [x] **S2-3（10min）：设计 OpenCode WoClaw plugin 方案** ✅ 2026-04-03
+  - 方案A（推荐）：oh-my-opencode 零开发复用 Claude Code hooks
+  - 方案B（备选）：opencode-woclaw 原生插件（`packages/opencode-woclaw-plugin/` 已就绪，待 npm 发布）
+  - 输出：`docs/OPENCODE-INTEGRATION.md` 集成指南
 
 ### S3: Codex Hook npm 发布（v0.2）
 > 评估：package.json 已就绪，~2 步骤
