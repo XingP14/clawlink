@@ -422,8 +422,9 @@ woclaw migrate --all            # 执行所有迁移
   - 添加 `delegations` Map 存储状态
   - 支持 CANCEL 取消委托
 
-- [ ] **S12-4（10min）：添加 REST API 端点**
-  - `GET /delegations`, `POST /delegations`, `DELETE /delegations/:id`
+- [x] **S12-4（10min）：添加 REST API 端点** ✅ 2026-04-04
+  - `GET /delegations`, `POST /delegations`, `DELETE /delegations/:id` ✅
+  - `GET /delegations/pending?agentId=X` ✅ 全部验证通过
 
 - [ ] **S12-5（10min）：CLI 支持 + 测试**
   - 在 `plugin/bin/woclaw-cli.js` 添加 `delegate` 命令
