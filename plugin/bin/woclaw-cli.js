@@ -2,6 +2,7 @@
 // WoClaw CLI - Connect to WoClaw Hub from any environment
 
 import WebSocket from 'ws';
+import http from 'http';
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -101,9 +102,50 @@ async function main() {
         send(ws, { type: 'memory_read', key });
         setTimeout(() => { ws.close(); resolve(); }, 2000);
       }
+      else if (command === 'delegate') {
+        const toAgent = args[1];
+        const description = args.slice(2).join(' ');
+        if (!toAgent || !description) {
+          log('Usage: woclaw delegate <toAgent> <task description>');
+          ws.close();
+          resolve();
+          return;
+        }
+        const id = `deleg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+        log(`Delegating task to ${toAgent}: ${description}`);
+        send(ws, { type: 'delegate_request', id, toAgent, task: { description } });
+        setTimeout(() => { ws.close(); resolve(); }, 3000);
+      }
+      else if (command === 'delegations') {
+        const status = args[1];
+        const restUrl = (process.env.WOCLAW_REST_URL || 'http://localhost:8081').replace('ws://', 'http://');
+        const path = `/delegations${status ? '?status=' + status : ''}`;
+        log(`Fetching delegations via REST API: ${restUrl}${path}`);
+        http.get(`${restUrl}${path}`, (res) => {
+          let body = '';
+          res.on('data', chunk => { body += chunk; });
+          res.on('end', () => {
+            try {
+              const data = JSON.parse(body);
+              log(`Delegations (${data.count}):`);
+              for (const d of (data.delegations || [])) {
+                log(`  [${d.status}] ${d.id}: ${d.fromAgent} → ${d.toAgent}: ${d.task.description}`);
+              }
+            } catch (e) {
+              log(`Parse error: ${e.message}`);
+            }
+            ws.close();
+            resolve();
+          });
+        }).on('error', (e) => {
+          log(`REST API error: ${e.message}`);
+          ws.close();
+          resolve();
+        });
+      }
       else if (command === 'shell') {
         // Interactive shell mode
-        log('Entering shell mode. Commands: join, leave, send, list, memory-write, memory-read, exit');
+        log('Entering shell mode. Commands: join, leave, send, list, memory-write, memory-read, delegate, delegations, exit');
         process.stdin.setEncoding('utf8');
         process.stdin.on('data', (line) => {
           const cmd = line.trim().split(' ');
@@ -135,7 +177,7 @@ async function main() {
       }
       else if (command) {
         log(`Unknown command: ${command}`);
-        log('Commands: join, leave, send, list, memory-write, memory-read, shell');
+        log('Commands: join, leave, send, list, memory-write, memory-read, delegate, delegations, shell');
         ws.close();
         resolve();
       }
@@ -172,6 +214,12 @@ async function main() {
           break;
         case 'memory_value':
           log(`Memory ${msg.key}: ${msg.value} (exists: ${msg.exists})`);
+          break;
+        case 'delegate_incoming':
+          log(`[Delegation] Incoming task from ${msg.fromAgent}: ${msg.task.description}`);
+          break;
+        case 'delegate_status':
+          log(`[Delegation] ${msg.id}: ${msg.status}${msg.progress !== undefined ? ' (' + msg.progress + '%)' : ''}${msg.note ? ' — ' + msg.note : ''}`);
           break;
         case 'error':
           log(`Error: ${msg.code} - ${msg.message}`);
