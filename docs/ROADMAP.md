@@ -210,19 +210,20 @@ woclaw migrate --all            # 执行所有迁移
   - install.js 早已配置 `hookNames` 包含 `gemini-session-stop`，无需额外修改
 
 ### S2: OpenCode Hook 脚本（v0.2）
-> 评估：同 S1，需要先调研，总计 ~3 步骤
+> 评估：OpenCode **无原生 session lifecycle hooks**（Feature Request #14863 未实现），~3 步骤
 
-- [ ] **S2-1（10min）：调研 OpenCode hooks 机制**
-  - Web 搜索："OpenCode CLI hooks" 或查看 `~/.opencode/` 目录
-  - 输出：确认 hooks 支持和配置方式
+- [x] **S2-1（10min）：调研 OpenCode hooks 机制** ✅ 2026-04-03
+  - Web 搜索 + GitHub issue 研究
+  - 输出：❌ OpenCode 无原生 hooks，需自建 plugin；详见 `docs/OPENCODE-HOOKS-RESEARCH.md`
+  - 建议：跳过 S2 进入 S3，或长期自建 plugin
 
-- [ ] **S2-2（10min）：实现 opencode-session-start.sh**
-  - 参考 Claude Code hook 脚本模式
-  - 创建 `packages/woclaw-hooks/opencode-session-start.sh`
+- [ ] **S2-2（10min）：评估 oh-my-opencode 集成可行性**
+  - 研究 oh-my-opencode 插件的 hooks 是否可用
+  - 输出：是否可作为 WoClaw 集成的中间层
 
-- [ ] **S2-3（10min）：实现 opencode-session-stop.sh + 更新 install.js**
-  - 创建 opencode-session-stop.sh
-  - 更新 install.js 的 opencode config
+- [ ] **S2-3（10min）：设计 OpenCode WoClaw plugin 方案**
+  - 设计 OpenCode plugin 架构（参考 Claude Code hook 模式）
+  - 输出：plugin 目录结构和关键文件设计
 
 ### S3: Codex Hook npm 发布（v0.2）
 > 评估：package.json 已就绪，~2 步骤
@@ -413,4 +414,4 @@ woclaw migrate --all            # 执行所有迁移
 
 ---
 
-_Last updated: 2026-04-03 19:03 CST_
+_Last updated: 2026-04-03 19:20 CST_
