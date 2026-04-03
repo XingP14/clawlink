@@ -26,7 +26,7 @@ function initWoclaw(api: any) {
 }
 
 const entry = defineChannelPluginEntry({
-  id: 'woclaw',
+  id: 'xingp14-woclaw',
   name: 'WoClaw',
   description: 'Connect to WoClaw Hub for topic-based multi-agent communication and shared memory.',
   plugin: woclawChannelPlugin,
