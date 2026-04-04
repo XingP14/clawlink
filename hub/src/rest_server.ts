@@ -230,6 +230,44 @@ export class RestServer {
       } else if (path === '/graph/stats' && method === 'GET') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(this.graph.getStats()));
+      } else if (path.startsWith('/graph/traverse/') && method === 'GET') {
+        const nodeId = decodeURIComponent(path.slice(16));
+        const depth = parseInt(url.searchParams.get('depth') || '1');
+        const limit = parseInt(url.searchParams.get('limit') || '50');
+        const edgeTypes = url.searchParams.get('edgeTypes')?.split(',') as any || undefined;
+        const nodeTypes = url.searchParams.get('nodeTypes')?.split(',') as any || undefined;
+        const results = this.graph.traverse(nodeId, { depth, limit, edgeTypes, nodeTypes });
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ results, count: results.length }));
+      } else if (path.startsWith('/graph/paths/') && method === 'GET') {
+        const parts = decodeURIComponent(path.slice(14)).split('/');
+        if (parts.length >= 2) {
+          const [from, to] = parts;
+          const maxDepth = parseInt(url.searchParams.get('maxDepth') || '5');
+          const result = this.graph.findPath(from, to, maxDepth);
+          if (!result) {
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'No path found' }));
+          } else {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ path: result }));
+          }
+        } else {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Invalid path format. Use /graph/paths/:from/:to' }));
+        }
+      } else if (path.startsWith('/graph/related/') && method === 'GET') {
+        const nodeId = decodeURIComponent(path.slice(15));
+        const edgeTypes = url.searchParams.get('edgeTypes')?.split(',') as any || undefined;
+        const nodeTypes = url.searchParams.get('nodeTypes')?.split(',') as any || undefined;
+        try {
+          const related = this.graph.getRelated(nodeId, { edgeTypes, nodeTypes });
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(related));
+        } catch (e: any) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: e.message }));
+        }
       } else {
         res.writeHead(404);
         res.end(JSON.stringify({ error: 'Not found' }));
