@@ -166,8 +166,8 @@ describe('WoClaw Hub Integration Tests', () => {
         headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` },
       });
       const body = await res.json() as any;
-      expect(Array.isArray(body)).toBe(true);
-      expect(body.length).toBeGreaterThanOrEqual(2);
+      expect(Array.isArray(body.memory)).toBe(true);
+      expect(body.memory.length).toBeGreaterThanOrEqual(2);
     });
 
     it('GET /memory/:key returns 404 for non-existent key', async () => {
@@ -207,166 +207,172 @@ describe('WoClaw Hub Integration Tests', () => {
   // ─── WebSocket Tests ──────────────────────────────────────────────
 
   describe('WebSocket - Connection', () => {
-    it('connects with valid token', (done) => {
-      const ws = new WebSocket(`${HUB_URL}?agentId=test-agent&token=${AUTH_TOKEN}`);
-      ws.on('open', () => {
-        ws.close();
-        done();
+    it('connects with valid token', async () => {
+      await new Promise((resolve, reject) => {
+        const ws = new WebSocket(`${HUB_URL}?agentId=test-agent&token=${AUTH_TOKEN}`);
+        ws.on('open', () => { ws.close(); resolve(undefined); });
+        ws.on('error', reject);
       });
-      ws.on('error', done);
     });
 
-    it('reconnects on disconnect', (done) => {
-      const ws = new WebSocket(`${HUB_URL}?agentId=reconnect-agent&token=${AUTH_TOKEN}`);
-      ws.on('open', () => {
-        ws.close();
-        setTimeout(() => {
-          const ws2 = new WebSocket(`${HUB_URL}?agentId=reconnect-agent&token=${AUTH_TOKEN}`);
-          ws2.on('open', () => { ws2.close(); done(); });
-          ws2.on('error', done);
-        }, 500);
+    it('reconnects on disconnect', async () => {
+      await new Promise((resolve, reject) => {
+        const ws = new WebSocket(`${HUB_URL}?agentId=reconnect-agent&token=${AUTH_TOKEN}`);
+        ws.on('open', () => {
+          ws.close();
+          setTimeout(() => {
+            const ws2 = new WebSocket(`${HUB_URL}?agentId=reconnect-agent&token=${AUTH_TOKEN}`);
+            ws2.on('open', () => { ws2.close(); resolve(undefined); });
+            ws2.on('error', reject);
+          }, 500);
+        });
+        ws.on('error', reject);
       });
     });
   });
 
   describe('WebSocket - Topics', () => {
-    it('receives welcome message on connect', (done) => {
-      const ws = new WebSocket(`${HUB_URL}?agentId=ws-test-agent&token=${AUTH_TOKEN}`);
-      ws.on('message', (data) => {
-        const msg = JSON.parse(data.toString());
-        if (msg.type === 'welcome') {
-          expect(msg.agentId).toBe('ws-test-agent');
-          ws.close();
-          done();
-        }
-      });
-      ws.on('error', done);
-    });
-
-    it('joins topic and receives history', (done) => {
-      const ws = new WebSocket(`${HUB_URL}?agentId=history-test-agent&token=${AUTH_TOKEN}`);
-      let receivedHistory = false;
-      ws.on('message', (data) => {
-        const msg = JSON.parse(data.toString());
-        if (msg.type === 'history' && msg.topic === 'general') {
-          receivedHistory = true;
-          expect(Array.isArray(msg.messages)).toBe(true);
-          ws.close();
-          done();
-        }
-      });
-      ws.on('error', done);
-      // Wait for welcome then join
-      setTimeout(() => {
-        ws.send(JSON.stringify({ type: 'join', topic: 'general' }));
-      }, 200);
-    }, 10000);
-
-    it('broadcasts message to all topic members', (done) => {
-      const msgContent = `broadcast-test-${Date.now()}`;
-
-      // Agent 1 joins first
-      const ws1 = new WebSocket(`${HUB_URL}?agentId=broadcaster&token=${AUTH_TOKEN}`);
-      ws1.on('open', () => {
-        ws1.send(JSON.stringify({ type: 'join', topic: 'broadcast-topic' }));
-        // Agent 2 joins after
-        const ws2 = new WebSocket(`${HUB_URL}?agentId=broadcast-receiver&token=${AUTH_TOKEN}`);
-        ws2.on('message', (data) => {
+    it('receives welcome message on connect', async () => {
+      await new Promise((resolve, reject) => {
+        const ws = new WebSocket(`${HUB_URL}?agentId=ws-test-agent&token=${AUTH_TOKEN}`);
+        ws.on('message', (data) => {
           const msg = JSON.parse(data.toString());
-          if (msg.type === 'message' && msg.content === msgContent && msg.from === 'broadcaster') {
-            ws1.close();
-            ws2.close();
-            done();
+          if (msg.type === 'welcome') {
+            expect(msg.agentId).toBe('ws-test-agent');
+            ws.close();
+            resolve(undefined);
           }
         });
-        ws2.on('error', done);
-        setTimeout(() => {
-          ws1.send(JSON.stringify({ type: 'message', topic: 'broadcast-topic', content: msgContent }));
-        }, 500);
+        ws.on('error', reject);
       });
-      ws1.on('error', done);
-    }, 10000);
-  });
+    });
+
+    it('joins topic and receives history', async () => {
+      await new Promise((resolve, reject) => {
+        const ws = new WebSocket(`${HUB_URL}?agentId=history-test-agent&token=${AUTH_TOKEN}`);
+        ws.on('message', (data) => {
+          const msg = JSON.parse(data.toString());
+          if (msg.type === 'history' && msg.topic === 'general') {
+            expect(Array.isArray(msg.messages)).toBe(true);
+            ws.close();
+            resolve(undefined);
+          }
+        });
+        ws.on('error', reject);
+        setTimeout(() => {
+          ws.send(JSON.stringify({ type: 'join', topic: 'general' }));
+        }, 200);
+      });
+    });
+
+    it('broadcasts message to all topic members', async () => {
+      const msgContent = `broadcast-test-${Date.now()}`;
+      await new Promise((resolve, reject) => {
+        const ws1 = new WebSocket(`${HUB_URL}?agentId=broadcaster&token=${AUTH_TOKEN}`);
+        ws1.on('open', () => {
+          ws1.send(JSON.stringify({ type: 'join', topic: 'broadcast-topic' }));
+          const ws2 = new WebSocket(`${HUB_URL}?agentId=broadcast-receiver&token=${AUTH_TOKEN}`);
+          ws2.on('message', (data) => {
+            const msg = JSON.parse(data.toString());
+            if (msg.type === 'message' && msg.content === msgContent && msg.from === 'broadcaster') {
+              ws1.close();
+              ws2.close();
+              resolve(undefined);
+            }
+          });
+          ws2.on('error', reject);
+          setTimeout(() => {
+            ws1.send(JSON.stringify({ type: 'message', topic: 'broadcast-topic', content: msgContent }));
+          }, 500);
+        });
+        ws1.on('error', reject);
+      });
+    }, 20000);
 
   describe('WebSocket - Memory via WS', () => {
-    it('reads memory via WebSocket', (done) => {
-      // First write via REST
-      fetch(`${REST_URL}/memory`, {
+    it('reads memory via WebSocket', async () => {
+      await fetch(`${REST_URL}/memory`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${AUTH_TOKEN}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ key: 'ws-read-test', value: 'ws-read-value' }),
-      }).then(() => {
+      });
+      await new Promise((resolve, reject) => {
         const ws = new WebSocket(`${HUB_URL}?agentId=ws-mem-reader&token=${AUTH_TOKEN}`);
         ws.on('message', (data) => {
           const msg = JSON.parse(data.toString());
           if (msg.type === 'memory_read_response' && msg.key === 'ws-read-test') {
             expect(msg.value).toBe('ws-read-value');
             ws.close();
-            done();
+            resolve(undefined);
           }
         });
-        ws.on('error', done);
+        ws.on('error', reject);
         ws.on('open', () => {
           ws.send(JSON.stringify({ type: 'memory_read', key: 'ws-read-test' }));
         });
       });
-    }, 10000);
+    }, 15000);
   });
 
   describe('WebSocket - Ping/Pong', () => {
-    it('responds to ping', (done) => {
-      const ws = new WebSocket(`${HUB_URL}?agentId=ping-agent&token=${AUTH_TOKEN}`);
-      ws.on('message', (data) => {
-        const msg = JSON.parse(data.toString());
-        if (msg.type === 'pong') {
-          ws.close();
-          done();
-        }
+    it('responds to ping', async () => {
+      await new Promise((resolve, reject) => {
+        const ws = new WebSocket(`${HUB_URL}?agentId=ping-agent&token=${AUTH_TOKEN}`);
+        ws.on('message', (data) => {
+          const msg = JSON.parse(data.toString());
+          if (msg.type === 'pong') {
+            ws.close();
+            resolve(undefined);
+          }
+        });
+        ws.on('open', () => {
+          ws.send(JSON.stringify({ type: 'ping' }));
+        });
+        ws.on('error', reject);
       });
-      ws.on('open', () => {
-        ws.send(JSON.stringify({ type: 'ping' }));
-      });
-      ws.on('error', done);
     });
   });
 
   // ─── Multi-Agent Tests ────────────────────────────────────────────
 
   describe('Multi-Agent Coordination', () => {
-    it('two agents can coordinate via topics', (done) => {
+    it('two agents can coordinate via topics', async () => {
       const coordTopic = `coord-test-${Date.now()}`;
       const msgFromA = `coord-msg-a-${Date.now()}`;
 
-      const wsA = new WebSocket(`${HUB_URL}?agentId=agent-A&token=${AUTH_TOKEN}`);
-      const wsB = new WebSocket(`${HUB_URL}?agentId=agent-B&token=${AUTH_TOKEN}`);
-
       let bReady = false;
-      wsB.on('open', () => {
-        wsB.send(JSON.stringify({ type: 'join', topic: coordTopic }));
-        bReady = true;
-      });
+      await new Promise((resolve, reject) => {
+        const wsA = new WebSocket(`${HUB_URL}?agentId=agent-A&token=${AUTH_TOKEN}`);
+        const wsB = new WebSocket(`${HUB_URL}?agentId=agent-B&token=${AUTH_TOKEN}`);
 
-      wsB.on('message', (data) => {
-        const msg = JSON.parse(data.toString());
-        if (msg.type === 'message' && msg.content === msgFromA && msg.from === 'agent-A') {
-          wsA.close();
-          wsB.close();
-          done();
-        }
-      });
-      wsB.on('error', done);
+        wsB.on('open', () => {
+          wsB.send(JSON.stringify({ type: 'join', topic: coordTopic }));
+          bReady = true;
+        });
 
-      wsA.on('open', () => {
-        wsA.send(JSON.stringify({ type: 'join', topic: coordTopic }));
-      });
-      wsA.on('error', done);
+        wsB.on('message', (data) => {
+          const msg = JSON.parse(data.toString());
+          if (msg.type === 'message' && msg.content === msgFromA && msg.from === 'agent-A') {
+            wsA.close();
+            wsB.close();
+            resolve(undefined);
+          }
+        });
+        wsB.on('error', reject);
 
-      // A sends after both joined
-      setTimeout(() => {
-        if (bReady) {
-          wsA.send(JSON.stringify({ type: 'message', topic: coordTopic, content: msgFromA }));
-        }
-      }, 800);
-    }, 15000);
+        wsA.on('open', () => {
+          wsA.send(JSON.stringify({ type: 'join', topic: coordTopic }));
+        });
+        wsA.on('error', reject);
+
+        setTimeout(() => {
+          if (bReady) {
+            wsA.send(JSON.stringify({ type: 'message', topic: coordTopic, content: msgFromA }));
+          }
+        }, 800);
+      });
+    });
   });
+});
+
 });

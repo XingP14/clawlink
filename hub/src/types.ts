@@ -6,6 +6,8 @@ export interface Config {
   host: string;
   dataDir: string;
   authToken: string;
+  tlsKey?: string;   // TLS key file path (enables wss://)
+  tlsCert?: string;  // TLS cert file path (enables wss://)
 }
 
 export interface Agent<T = any> {

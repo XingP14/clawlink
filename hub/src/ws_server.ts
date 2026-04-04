@@ -1,5 +1,8 @@
 import { WebSocketServer, WebSocket as WSType } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
+import https from 'https';
+import http from 'http';
+import { readFileSync } from 'fs';
 import { Agent, InboundMessage, OutboundMessage, Config } from './types.js';
 import { TopicsManager } from './topics.js';
 import { MemoryPool } from './memory.js';
@@ -24,18 +27,39 @@ export class WSServer {
     this.db = db;
     this.topics = new TopicsManager();
     this.memory = new MemoryPool(db);
-    
-    this.wss = new WebSocketServer({ port: config.port });
-    
+
+    const useTLS = !!(config.tlsKey && config.tlsCert);
+    let server: http.Server | https.Server;
+
+    if (useTLS) {
+      try {
+        const tlsOptions: https.ServerOptions = {
+          key: readFileSync(config.tlsKey!),
+          cert: readFileSync(config.tlsCert!),
+        };
+        server = https.createServer(tlsOptions);
+        console.log(`[WoClaw] TLS enabled: wss://${config.host}:${config.port}`);
+      } catch (e: any) {
+        console.error(`[WoClaw] Failed to load TLS certificate: ${e.message}`);
+        throw e;
+      }
+    } else {
+      server = http.createServer();
+      console.log(`[WoClaw] TLS disabled: ws://${config.host}:${config.port}`);
+    }
+
+    this.wss = new WebSocketServer({ server });
     this.wss.on('connection', (ws: WS, req) => {
       this.handleConnection(ws, req);
     });
+
+    server.listen(config.port, config.host);
 
     this.pingInterval = setInterval(() => {
       this.pingAll();
     }, 30000);
 
-    console.log(`[WoClaw] WebSocket server running on ws://${config.host}:${config.port}`);
+    console.log(`[WoClaw] WebSocket server running on ${useTLS ? 'wss' : 'ws'}://${config.host}:${config.port}`);
   }
 
   private handleConnection(ws: WS, req: any): void {

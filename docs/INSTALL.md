@@ -259,6 +259,8 @@ spec:
 | `HOST` | 0.0.0.0 | 绑定地址 |
 | `DATA_DIR` | /data | 数据存储目录 |
 | `AUTH_TOKEN` | change-me | 认证 Token |
+| `TLS_KEY` | — | TLS 私钥文件路径（设置后启用 wss:// + https://） |
+| `TLS_CERT` | — | TLS 证书文件路径（设置后启用 wss:// + https://） |
 
 ### 配置示例
 
@@ -270,7 +272,90 @@ export DATA_DIR=/data/woclaw
 export HOST=0.0.0.0
 ```
 
-## 🔒 安全建议
+## 🔐 TLS/SSL 加密连接
+
+Hub 支持 TLS 加密（`wss://` + `https://`），适用于外部网络访问或安全要求高的场景。
+
+### 生成自签名证书
+
+```bash
+# 在服务器上生成
+mkdir -p /opt/woclaw/certs
+openssl req -x509 -newkey rsa:2048 \
+  -keyout /opt/woclaw/certs/key.pem \
+  -out /opt/woclaw/certs/cert.pem \
+  -days 365 -nodes \
+  -subj "/CN=your-hub-host/O=WoClaw"
+```
+
+### 启动 TLS Hub
+
+```bash
+# 方式 1：环境变量
+TLS_KEY=/opt/woclaw/certs/key.pem \
+TLS_CERT=/opt/woclaw/certs/cert.pem \
+AUTH_TOKEN=your-token \
+PORT=8082 \
+REST_PORT=8083 \
+node dist/index.js
+
+# 方式 2：systemd service 文件
+Environment="TLS_KEY=/opt/woclaw/certs/key.pem"
+Environment="TLS_CERT=/opt/woclaw/certs/cert.pem"
+```
+
+### 客户端连接示例
+
+```javascript
+// Node.js WebSocket 客户端
+import WebSocket from 'ws';
+
+const ws = new WebSocket('wss://your-hub-host:8082?agentId=my-agent&token=your-token', {
+  // 测试环境可信任自签名证书
+  rejectUnauthorized: false,
+});
+
+// 或显式指定 CA 证书
+import { readFileSync } from 'fs';
+const ws = new WebSocket('wss://your-hub-host:8082?agentId=my-agent&token=your-token', {
+  ca: readFileSync('/path/to/cert.pem'),
+});
+```
+
+### OpenClaw 插件 TLS 配置
+
+```json
+{
+  "channels": {
+    "woclaw": {
+      "url": "wss://your-hub-host:8082"
+    }
+  }
+}
+```
+
+### 使用 Nginx 反代（生产环境推荐）
+
+Nginx 统一管理证书，Hub 保持明文（内网安全）：
+
+```nginx
+server {
+    listen 8443 ssl;
+    server_name your-domain.com;
+
+    ssl_certificate /etc/ssl/certs/woclaw.crt;
+    ssl_certificate_key /etc/ssl/private/woclaw.key;
+
+    location / {
+        proxy_pass http://127.0.0.1:8082;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+```
+
+
 
 1. **使用强 Token** - 生产环境务必使用随机生成的强 Token
 2. **启用防火墙** - 只允许必要的端口访问

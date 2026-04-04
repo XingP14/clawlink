@@ -1,4 +1,6 @@
 import http from 'http';
+import https from 'https';
+import { readFileSync } from 'fs';
 import { ClawDB } from './db.js';
 import { TopicsManager } from './topics.js';
 import { MemoryPool } from './memory.js';
@@ -22,13 +24,29 @@ export class RestServer {
   }
 
   start(): void {
-    this.server = http.createServer((req, res) => {
-      this.handleRequest(req, res);
-    });
-
-    this.server.listen(this.config.restPort, () => {
+    const useTLS = !!(this.config.tlsKey && this.config.tlsCert);
+    if (useTLS) {
+      try {
+        const tlsOptions: https.ServerOptions = {
+          key: readFileSync(this.config.tlsKey!),
+          cert: readFileSync(this.config.tlsCert!),
+        };
+        this.server = https.createServer(tlsOptions, (req, res) => {
+          this.handleRequest(req, res);
+        });
+        console.log(`[WoClaw] REST API running on https://${this.config.host}:${this.config.restPort} (TLS)`);
+      } catch (e: any) {
+        console.error(`[WoClaw] Failed to load TLS certificate for REST: ${e.message}`);
+        throw e;
+      }
+    } else {
+      this.server = http.createServer((req, res) => {
+        this.handleRequest(req, res);
+      });
       console.log(`[WoClaw] REST API running on http://${this.config.host}:${this.config.restPort}`);
-    });
+    }
+
+    this.server.listen(this.config.restPort, this.config.host);
   }
 
   private handleRequest(req: http.IncomingMessage, res: http.ServerResponse): void {

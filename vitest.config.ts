@@ -8,7 +8,11 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: [path.resolve(__dirname, 'hub/test/**/*.test.ts'), path.resolve(__dirname, 'plugin/test/**/*.test.ts')],
+    include: [
+      path.resolve(__dirname, 'hub/test/**/*.test.ts'),
+      path.resolve(__dirname, 'plugin/test/**/*.test.ts'),
+      path.resolve(__dirname, 'integration-test/**/*.test.ts'),
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

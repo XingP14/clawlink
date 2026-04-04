@@ -10,6 +10,8 @@ const DEFAULT_CONFIG: Config = {
   host: process.env.HOST || '0.0.0.0',
   dataDir: process.env.DATA_DIR || '/data',
   authToken: process.env.AUTH_TOKEN || 'change-me-in-production',
+  tlsKey: process.env.TLS_KEY || undefined,
+  tlsCert: process.env.TLS_CERT || undefined,
 };
 
 async function main() {
@@ -44,6 +46,7 @@ async function main() {
   console.log(`  Host: ${config.host}`);
   console.log(`  Data Dir: ${config.dataDir}`);
   console.log(`  Auth Token: ${config.authToken.substring(0, 8)}...`);
+  console.log(`  TLS: ${config.tlsKey ? 'enabled (wss:// + https://)' : 'disabled (ws:// + http://)'}`);
   console.log('');
 
   // Initialize database
@@ -60,8 +63,10 @@ async function main() {
   console.log('[WoClaw] Server started successfully');
   console.log('');
   console.log('[WoClaw] Endpoints:');
-  console.log(`  WebSocket: ws://${config.host}:${config.port}`);
-  console.log(`  REST API:  http://${config.host}:${config.restPort}`);
+  const wsProto = config.tlsKey ? 'wss' : 'ws';
+  const restProto = config.tlsKey ? 'https' : 'http';
+  console.log(`  WebSocket: ${wsProto}://${config.host}:${config.port}`);
+  console.log(`  REST API:  ${restProto}://${config.host}:${config.restPort}`);
   console.log('');
 
   // Graceful shutdown
