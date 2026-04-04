@@ -187,7 +187,7 @@ woclaw migrate --all            # 执行所有迁移
 | S16 | OpenClaw 迁移工具 | v0.5 | 4 | ~2h | ✅ 2026-04-04 |
 | S17 | MCP Server 使用文档 | v0.6 | 3 | ~1h | ✅ 2026-04-04 |
 | S18 | TLS/SSL 支持 | v0.6 | 3 | ~30min | ✅ 2026-04-04 |
-| S19 | 连接限流 | v1.0 | 4 | ~40min | 🔨 进行中 |
+| S19 | 连接限流 | v1.0 | 4 | ~40min | ✅ 2026-04-04 |
 
 ---
 
@@ -513,18 +513,18 @@ woclaw migrate --all            # 执行所有迁移
   - 输出：`hub/src/types.ts` 新增 `RateLimitConfig`, `RateLimitEntry`, `RateLimitStatus` 类型
   - `checkRateLimit()`, `getRateLimitStatuses()`, `setRateLimitConfig()` 方法已添加到 ws_server.ts
 
-- [ ] **S19-2（10min）：实现 ws_server.ts 限流逻辑**
+- [x] **S19-2（10min）：实现 ws_server.ts 限流逻辑** ✅ 2026-04-04（随 S19-1 完成）
   - 在 `WSServer` 添加 `private rateLimits: Map<string, { timestamps: number[] }>` 追踪
   - 在 `handleMessage()` 入口处调用 `checkRateLimit(agentId)` 检查
   - 超出限制时发送 `{ type: 'error', code: 'RATE_LIMIT_EXCEEDED', retryAfter: <ms> }`，不断开连接
   - Hub 启动时输出限流配置（messages/window）
 
-- [ ] **S19-3（10min）：CLI + REST API 端点**
+- [x] **S19-3（10min）：CLI + REST API 端点** ✅ 2026-04-04
   - `GET /rate-limits` — 查看当前所有限流配置和状态
   - `woclaw rate-limits` CLI 子命令
   - REST 返回格式：`{ [agentId]: { limit: number, windowMs: number, currentCount: number } }`
 
-- [ ] **S19-4（10min）：单元测试 + 文档**
+- [x] **S19-4（10min）：单元测试 + 文档** ✅ 2026-04-04
   - 添加 `hub/test/rate_limit.test.ts`，测试限流计数和窗口滑动
   - README 新增 Rate Limiting 章节
 
