@@ -123,7 +123,7 @@ woclaw migrate --all            # 执行所有迁移
 ## 🔧 v0.6 — 生态完善
 
 ### 发布到生态
-- [ ] Docker Hub 发布（credentials 配置）
+- [x] Docker Hub 发布（credentials 配置）✅ 2026-04-04
 - [ ] ClawHub Skill 发布（2026-04-13 后）
 - [ ] VS Code / Cursor 插件（可选）
 
@@ -155,7 +155,7 @@ woclaw migrate --all            # 执行所有迁移
 | v0.3 | 2026-04-01 | Tags/TTL 增强、Docker Hub Workflow ✅ |
 | v0.4 | 2026-04-02→04-04 | ⭐ **OpenAI Codex CLI Hook 支持**（高优先级）✅ |
 | v0.5 | 2026-04-04 | ⭐ **跨框架数据迁移**（OpenAI/Claude/Gemini/OpenClaw → WoClaw）✅ |
-| v0.6 | 待定 | Hook 系统完善、Docker Hub、ClawHub Skill |
+| v0.6 | 2026-04-04 | Hook 系统完善、Docker Hub、ClawHub Skill（2026-04-13 后发布）|
 | v1.0 | 待定 | Graph Memory、Federation |
 
 ---
@@ -185,7 +185,8 @@ woclaw migrate --all            # 执行所有迁移
 | S14 | Claude Code 迁移工具 | v0.5 | 4 | ~2h | ✅ 2026-04-04 |
 | S15 | Gemini CLI 迁移工具 | v0.5 | 4 | ~2h | ✅ 2026-04-04 |
 | S16 | OpenClaw 迁移工具 | v0.5 | 4 | ~2h | ✅ 2026-04-04 |
-| S17 | MCP Server 使用文档 | v0.6 | 3 | ~1h | 进行中 |
+| S17 | MCP Server 使用文档 | v0.6 | 3 | ~1h | ✅ 2026-04-04 |
+| S18 | TLS/SSL 支持 | v0.6 | 3 | ~30min | ✅ 2026-04-04 |
 
 ---
 
@@ -474,6 +475,32 @@ woclaw migrate --all            # 执行所有迁移
     - 环境变量说明
     - 故障排除指南
 
+- [x] **S17-2（10min）：修复 woclaw_memory_list params** ✅ 2026-04-04
+  - tag→tags 参数修正，移除 unsupported limit 参数
+
+- [x] **S17-3（10min）：准备 ClawHub SKILL.md** ✅ 2026-04-04
+  - 添加 ClawHub frontmatter (name, description, metadata, Security & Privacy, External Endpoints)
+
+### S18: TLS/SSL 支持（v0.6）
+> 评估：Hub 侧 WebSocket TLS 改造，~3 步骤 ✅ 已完成
+
+- [x] **S18-1（10min）：设计 TLS 方案** ✅ 2026-04-04
+  - 自签名 cert 或 Let's Encrypt，Hub 双模式（ws/wss）监听
+  - TLS_KEY + TLS_CERT 环境变量驱动
+  - ws_server.ts 和 rest_server.ts 双支持
+
+- [x] **S18-2（10min）：实现 ws_server.ts TLS** ✅ 2026-04-04
+  - `https.createServer()` 在检测到 tlsKey+tlsCert 时启用 TLS
+  - WebSocketServer 挂载于 https.Server，支持 wss://
+  - RestServer 同样支持 https://，双 server 共存
+  - Hub 启动时输出协议：`[WoClaw] TLS: enabled (wss:// + https://)` / `disabled (ws:// + http://)`
+
+- [x] **S18-3（10min）：更新 README + 文档** ✅ 2026-04-04
+  - README.md 新增 TLS/SSL 章节（Docker / Node.js 两种部署方式）
+  - Docker TLS 示例：openssl 自签名证书 + 容器环境变量挂载
+  - Node.js TLS 示例：TLS_KEY + TLS_CERT 环境变量
+  - 环境变量说明表：TLS_KEY, TLS_CERT
+
 ---
 
-_Last updated: 2026-04-04 03:03 CST_
+_Last updated: 2026-04-04 09:00 CST_

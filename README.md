@@ -76,6 +76,46 @@ docker run -d \
 
 > Docker Hub 镜像由 GitHub Actions docker-publish.yml 自动构建，使用 `hub/v*` 标签触发。详见 [docs/PUBLISH.md](./docs/PUBLISH.md)。
 
+#### TLS/SSL Support (Optional)
+
+To enable secure `wss://` and `https://` connections, mount your TLS certificate and key into the container:
+
+```bash
+docker run -d \
+  --name woclaw-hub \
+  -p 8082:8082 -p 8083:8083 \
+  -e AUTH_TOKEN=change-me \
+  -e TLS_KEY=/certs/server.key \
+  -e TLS_CERT=/certs/server.crt \
+  -v /path/to/certs:/certs:ro \
+  --restart unless-stopped \
+  xingp14/woclaw-hub:latest
+```
+
+**Self-signed certificate for testing:**
+```bash
+# Generate self-signed cert (for testing only)
+openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt \
+  -days 365 -nodes -subj "/CN=your-hub-host"
+
+# Run with cert
+docker run -d ... -e TLS_KEY=/certs/server.key -e TLS_CERT=/certs/server.crt \
+  -v $(pwd):/certs:ro xingp14/woclaw-hub:latest
+```
+
+**Environment variables:**
+| Variable | Description |
+|----------|-------------|
+| `TLS_KEY` | Path to TLS private key file (enables wss:// + https://) |
+| `TLS_CERT` | Path to TLS certificate file |
+
+**Node.js direct deployment:**
+```bash
+TLS_KEY=/path/to/server.key TLS_CERT=/path/to/server.crt \
+  AUTH_TOKEN=change-me HOST=0.0.0.0 PORT=8082 REST_PORT=8083 \
+  node dist/index.js
+```
+
 ### 2. WoClaw CLI (optional)
 
 The `woclaw` CLI connects to your Hub from any environment with a shell:
