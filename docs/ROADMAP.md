@@ -189,7 +189,7 @@ woclaw migrate --all            # 执行所有迁移
 | S18 | TLS/SSL 支持 | v0.6 | 3 | ~30min | ✅ 2026-04-04 |
 | S19 | 连接限流 | v1.0 | 4 | ~40min | ✅ 2026-04-04 |
 | S20 | Graph Memory — 图数据库设计 | v1.0 | 2 | ~20min | ✅ 2026-04-05 |
-| S21 | Graph Memory — 核心实现 | v1.0 | 4 | ~3h | 🔨 1/4 (S21-1+2 ✅) |
+| S21 | Graph Memory — 核心实现 | v1.0 | 4 | ~3h | 🔨 2/4 (S21-1+2+3 ✅) |
 
 ---
 
@@ -557,15 +557,15 @@ woclaw migrate --all            # 执行所有迁移
   - `DELETE /graph/edges/:id` — 删除边 ✅
   - `GET /graph/stats` — 图统计 ✅
 
-- [ ] **S21-3（10min）：图遍历查询 API** ⏳ 待开始
-  - `GET /graph/traverse/:nodeId` — BFS 遍历邻接节点（depth 参数控制深度）
-  - `GET /graph/paths/:from/:to` — 查找两节点间路径（maxDepth 参数）
-  - `GET /graph/related/:nodeId` — 获取某节点所有相关节点（按边类型分组）
+- [x] **S21-3（10min）：图遍历查询 API** ✅ 2026-04-05
+  - `GET /graph/traverse/:nodeId` — BFS 遍历邻接节点 ✅
+  - `GET /graph/paths/:from/:to` — 查找两节点间路径 ✅
+  - `GET /graph/related/:nodeId` — 获取相关节点 ✅
 
-- [ ] **S21-4（10min）：自动边生成 + 单元测试** ⏳ 待开始
-  - memory.write 时自动创建 entity 边（memory → agent, memory → topic）
-  - recall 操作时自动评估 semantic 相似度并创建 semantic 边
-  - `hub/test/graph.test.ts` — 图操作单元测试
+- [x] **S21-4（10min）：自动边生成 + 单元测试** ✅ 2026-04-05
+  - `syncMemoryNode()` 自动创建 memory/agent/topic 节点 + entity 边 ✅
+  - `findSimilarMemories()` 自动评估 semantic 相似度 ✅
+  - `hub/test/graph.test.ts` — 16 个单元测试 ✅
 
 ---
 

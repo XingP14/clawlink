@@ -244,7 +244,7 @@ export class RestServer {
         if (parts.length >= 2) {
           const [from, to] = parts;
           const maxDepth = parseInt(url.searchParams.get('maxDepth') || '5');
-          const result = this.graph.findPath(from, to, maxDepth);
+const result = this.graph.findPath(from, to, maxDepth);
           if (!result) {
             res.writeHead(404, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: 'No path found' }));

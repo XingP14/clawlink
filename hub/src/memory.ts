@@ -29,6 +29,8 @@ function tokenize(text: string): string[] {
 export class MemoryPool {
   private db: ClawDB;
   private subscribers: Map<string, (msg: OutboundMessage) => void> = new Map();
+  // v1.0: optional GraphStore for auto-linking memory → graph edges
+  public graphStore: import('./graph/store.js').GraphStore | null = null;
 
   constructor(db: ClawDB) {
     this.db = db;
@@ -39,6 +41,25 @@ export class MemoryPool {
     this.db.setMemory(key, serialized, updatedBy, tags, ttl);
     const mem = this.db.getMemory(key)!;
     this.notifySubscribers({ type: 'memory_write', key, value: serialized, updatedBy });
+
+    // v1.0: Auto-create graph edges for this memory
+    if (this.graphStore) {
+      const memNode = this.graphStore.syncMemoryNode(key, serialized, updatedBy, tags);
+      // Auto-link semantically similar memories
+      const similar = this.graphStore.findSimilarMemories(memNode.id, 0.5);
+      for (const sim of similar) {
+        try {
+          this.graphStore.addEdge({
+            source: memNode.id,
+            target: sim.id,
+            type: 'semantic',
+            weight: 0.5,
+            metadata: { auto: true, via: 'memory-write' },
+          });
+        } catch { /* edge may already exist */ }
+      }
+    }
+
     return mem;
   }
 

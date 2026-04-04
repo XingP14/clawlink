@@ -237,6 +237,39 @@ export class GraphStore implements IGraphStore {
   // ═══════════════════════════════════════════════════════════
 
   /**
+   * Sync a memory pool entry to a graph node (creates or updates),
+   * then auto-links to agent and topics.
+   */
+  syncMemoryNode(memoryKey: string, value: string, agentId: string, tags: string[] = []): GraphNode {
+    // Find or create memory node by key label
+    let memNode = Array.from(this.nodes.values()).find(n => n.type === 'memory' && n.label === memoryKey);
+    if (memNode) {
+      memNode = this.updateNode(memNode.id, { metadata: { value, tags } })!;
+    } else {
+      memNode = this.addNode({ type: 'memory', label: memoryKey, metadata: { value, tags } });
+    }
+
+    // Ensure agent node exists
+    let agentNode = Array.from(this.nodes.values()).find(n => n.type === 'agent' && n.label === agentId);
+    if (!agentNode) {
+      agentNode = this.addNode({ type: 'agent', label: agentId, metadata: {} });
+    }
+
+    // Link memory → agent (entity edge)
+    this.linkMemoryToAgent(memNode.id, agentNode.id);
+
+    // Link memory → topic nodes (from tags starting with "topic:")
+    for (const tag of tags) {
+      if (tag.startsWith('topic:')) {
+        const topicName = tag.slice(6);
+        this.linkMemoryToTopic(memNode.id, topicName);
+      }
+    }
+
+    return memNode;
+  }
+
+  /**
    * Create entity edge from memory node to agent node
    */
   linkMemoryToAgent(memoryId: string, agentId: string): void {
@@ -294,8 +327,11 @@ export class GraphStore implements IGraphStore {
    * Simple text similarity (Jaccard index on words) — placeholder for embedding-based similarity
    */
   private computeTextSimilarity(a: string, b: string): number {
-    const wordsA = new Set(a.toLowerCase().split(/\s+/).filter(w => w.length > 2));
-    const wordsB = new Set(b.toLowerCase().split(/\s+/).filter(w => w.length > 2));
+    // Tokenize: split on whitespace AND non-alphanumeric chars (hyphens, underscores, etc.)
+    const tokenize = (s: string) =>
+      new Set(s.toLowerCase().split(/[\s\W_]+/).filter(w => w.length > 2));
+    const wordsA = tokenize(a);
+    const wordsB = tokenize(b);
     if (wordsA.size === 0 || wordsB.size === 0) return 0;
     const intersection = new Set([...wordsA].filter(w => wordsB.has(w)));
     const union = new Set([...wordsA, ...wordsB]);

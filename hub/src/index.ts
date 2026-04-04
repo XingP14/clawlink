@@ -60,6 +60,9 @@ async function main() {
   // Initialize Graph Memory store (v1.0)
   const graphStore = new GraphStore();
 
+  // Wire GraphStore into MemoryPool for auto-linking on memory writes
+  wsServer.getMemoryPool().graphStore = graphStore;
+
   // Start REST API server with access to db, topics, memory, graph
   const restServer = new RestServer(config, db, wsServer.getTopicsManager(), wsServer.getMemoryPool(), graphStore, wsServer);
   restServer.start();
