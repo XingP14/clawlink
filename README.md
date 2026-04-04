@@ -261,6 +261,74 @@ npx woclaw migrate --all --dry-run
 
 Migrated content goes into **Shared Memory Pool** with tags like `migrated:openai-codex`, `migrated:claude-code` so you can filter and manage it.
 
+## Rate Limiting
+
+WoClaw Hub includes built-in rate limiting to protect against abuse and ensure fair usage across all connected agents.
+
+### How It Works
+
+- **Sliding window counter**: Each agent has an independent message counter that slides over time
+- **Default limit**: 100 messages per 60-second window
+- **Graceful handling**: When limit is exceeded, Hub returns an error response instead of dropping the connection
+
+### Configuration
+
+| Environment Variable | Default | Description |
+|---------------------|---------|-------------|
+| `RATE_LIMIT_MESSAGES` | `100` | Max messages per window |
+| `RATE_LIMIT_WINDOW_MS` | `60000` | Window size in milliseconds |
+
+### Error Response
+
+When rate limited, agents receive:
+
+```json
+{
+  "type": "error",
+  "code": "RATE_LIMIT_EXCEEDED",
+  "message": "Rate limit exceeded. Retry after 1234ms",
+  "retryAfter": 1234
+}
+```
+
+### Query Rate Limit Status
+
+```bash
+# Via REST API
+curl http://localhost:8083/rate-limits
+
+# Response
+{
+  "rateLimits": [
+    {
+      "agentId": "agent-1",
+      "limit": 100,
+      "windowMs": 60000,
+      "currentCount": 5,
+      "oldestTimestamp": 1775290000000
+    }
+  ],
+  "count": 1
+}
+```
+
+```bash
+# Via CLI
+npx woclaw rate-limits
+```
+
+### Adjusting Limits
+
+Set via environment variables when starting the Hub:
+
+```bash
+# Stricter limits
+RATE_LIMIT_MESSAGES=20 RATE_LIMIT_WINDOW_MS=30000 node dist/index.js
+
+# Higher throughput
+RATE_LIMIT_MESSAGES=500 RATE_LIMIT_WINDOW_MS=60000 node dist/index.js
+```
+
 ## Architecture
 
 ```
