@@ -52,7 +52,7 @@ npm start
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PORT` | 8082 | WebSocket server port |
-| `REST_PORT` | 8083 | REST API port (future) |
+| `REST_PORT` | 8083 | REST API port |
 | `HOST` | 0.0.0.0 | Bind address |
 | `DATA_DIR` | /data | Base data directory for local SQLite storage |
 | `DB_TYPE` | sqlite | Storage backend: `sqlite` or `mysql` |
@@ -196,7 +196,7 @@ curl -X POST http://localhost:8083/memory \
   -H "Authorization: Bearer WoClaw2026" \
   -d '{
     "key": "project-status",
-    "value": "v0.3.0 released",
+    "value": "v0.4.3 released",
     "tags": ["release","important"],
     "ttl": 86400
   }'

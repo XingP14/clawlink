@@ -5,11 +5,11 @@
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Stars](https://img.shields.io/github/stars/XingP14/woclaw?style=social)](https://github.com/XingP14/woclaw)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
-[![npm (scoped)](https://img.shields.io/npm/v/woclaw-hub?label=woclaw-hub)](https://www.npmjs.com/package/woclaw-hub)
-[![npm](https://img.shields.io/npm/v/xingp14-woclaw?label=xingp14-woclaw)](https://www.npmjs.com/package/xingp14-woclaw)
-[![npm](https://img.shields.io/npm/v/woclaw-mcp?label=woclaw-mcp)](https://www.npmjs.com/package/woclaw-mcp)
-[![npm](https://img.shields.io/npm/v/woclaw-hooks?label=woclaw-hooks%400.4.0)](https://www.npmjs.com/package/woclaw-hooks)
-[![npm](https://img.shields.io/npm/v/woclaw-codex?label=woclaw-codex%400.1.0)](https://www.npmjs.com/package/woclaw-codex)
+[![npm (scoped)](https://img.shields.io/npm/v/woclaw-hub?label=woclaw-hub%400.4.1)](https://www.npmjs.com/package/woclaw-hub)
+[![npm](https://img.shields.io/npm/v/xingp14-woclaw?label=xingp14-woclaw%400.4.3)](https://www.npmjs.com/package/xingp14-woclaw)
+[![npm](https://img.shields.io/npm/v/woclaw-mcp?label=woclaw-mcp%400.1.2)](https://www.npmjs.com/package/woclaw-mcp)
+[![npm](https://img.shields.io/npm/v/woclaw-hooks?label=woclaw-hooks%400.5.0)](https://www.npmjs.com/package/woclaw-hooks)
+[![npm](https://img.shields.io/npm/v/woclaw-codex?label=woclaw-codex%400.1.2)](https://www.npmjs.com/package/woclaw-codex)
 
 ## The Problem
 
@@ -50,11 +50,15 @@ WoClaw Hub is a **network-native shared brain** for all your AI agents.
 | Feature | Description |
 |---------|-------------|
 | 🧠 **Shared Memory Pool** | Global key-value store with Tags & TTL support |
+| 🗄️ **Storage Backends** | Default SQLite with optional MySQL backend and legacy JSON migration |
 | 📡 **Topic Pub/Sub** | Real-time message routing between agents |
 | 🔗 **Multi-Framework** | Connect OpenClaw, Claude Code, Gemini CLI, **OpenAI Codex CLI**, OpenCode |
 | 🌉 **MCP Bridge** | Built-in MCP server for MCP-capable agents |
 | 🪝 **Hook Integration** | LLM-supervised memory via lifecycle hooks |
 | 📜 **Message History** | Last 50 messages per topic on join |
+| 🔎 **Memory Search** | Keyword-focused memory search with body matching and scope filters |
+| 🧭 **Web UI** | GitHub Pages-friendly landing page, dashboard, and inspector |
+| 🕸️ **Graph Memory** | Temporal/entity/causal/semantic graph relationships between memories |
 | 🔒 **Token Auth** | Bearer token protection |
 | ⚡ **Real-Time Sync** | WebSocket-driven, no polling |
 | 🔄 **Migration Tools** | Import history from OpenAI Codex, Claude Code, Gemini CLI, OpenClaw |
@@ -75,6 +79,8 @@ docker run -d \
 ```
 
 > Docker Hub 镜像由 GitHub Actions docker-publish.yml 自动构建，使用 `hub/v*` 标签触发。详见 [docs/PUBLISH.md](./docs/PUBLISH.md)。
+
+默认情况下，Hub 使用本地 SQLite 数据库存储到 `/data/woclaw.sqlite`。如需切换到 MySQL，可设置 `DB_TYPE=mysql` 和对应的 `MYSQL_*` 环境变量。
 
 #### TLS/SSL Support (Optional)
 
@@ -223,8 +229,10 @@ WoClaw Hub includes a built-in web dashboard (port 8084):
 Features:
 - **Topics** — list all topics, see agent count per topic
 - **Agents** — view connected agents and their topics
-- **Memory** — search shared memory with full-text recall
+- **Memory** — search shared memory with keyword/body recall and version details
 - **Federation** — monitor connected peer Hubs
+
+The GitHub Pages site at [`https://xingp14.github.io/woclaw/`](https://xingp14.github.io/woclaw/) publishes the same landing/dashboard experience in a static-friendly form.
 
 ### Shared Memory: Tags & TTL
 
@@ -375,15 +383,15 @@ RATE_LIMIT_MESSAGES=500 RATE_LIMIT_WINDOW_MS=60000 node dist/index.js
 
 | Package | Version | Description |
 |---------|---------|-------------|
-| [woclaw-hub](https://www.npmjs.com/package/woclaw-hub) | 0.3.0 | Hub server |
-| [xingp14-woclaw](https://www.npmjs.com/package/xingp14-woclaw) | 0.3.0 | OpenClaw plugin |
+| [woclaw-hub](https://www.npmjs.com/package/woclaw-hub) | 0.4.1 | Hub server |
+| [xingp14-woclaw](https://www.npmjs.com/package/xingp14-woclaw) | 0.4.3 | OpenClaw plugin |
 | [woclaw-mcp](https://www.npmjs.com/package/woclaw-mcp) | 0.1.2 | MCP Bridge for MCP clients |
-| [woclaw-hooks](https://www.npmjs.com/package/woclaw-hooks) | 0.4.0 | Claude Code hook scripts |
-| [woclaw-codex](https://www.npmjs.com/package/woclaw-codex) | 0.1.0 | OpenAI Codex CLI hooks (Python) |
+| [woclaw-hooks](https://www.npmjs.com/package/woclaw-hooks) | 0.5.0 | Claude Code / Gemini / OpenCode hook scripts |
+| [woclaw-codex](https://www.npmjs.com/package/woclaw-codex) | 0.1.2 | OpenAI Codex CLI hooks (Python) |
 
 ## Links
 
-- 🌐 **Website:** https://xingp14.github.io/woclaw.github.io/
+- 🌐 **Website:** https://xingp14.github.io/woclaw/
 - 📦 **npm:** https://www.npmjs.com/package/woclaw-hub
 - 📖 **Docs:** https://github.com/XingP14/woclaw
 - 🐛 **Issues:** https://github.com/XingP14/woclaw/issues

@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.4.3] - 2026-04-05
+
+### Added
+- SQLite as the default Hub storage backend, with optional MySQL configuration and automatic migration from the legacy JSON store
+- GitHub Pages-compatible landing page, dashboard, and inspector under `site/`
+- Expanded migration sources for OpenClaw, Claude Code, Gemini CLI, and OpenAI Codex CLI
+- Graph Memory CRUD/traversal APIs and memory search scope filtering
+
+### Changed
+- Memory search now prioritizes key/title/tags and body-text matches instead of loose recall-only scoring
+- README / README_zh / Roadmap updated to reflect the current package versions and deployment flow
+
+### Fixed
+- Docker image build/publish workflow
+- GitHub Pages deployment and site URLs
+
 ## [0.4.1] - 2026-04-02
 
 ### Added (Codex CLI PreCompact Hook)

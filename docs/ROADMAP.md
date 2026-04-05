@@ -12,6 +12,46 @@
 
 > ⭐ **高优先级项目：OpenAI Codex CLI 集成** — OpenAI 官方 Python Codex 代理的 WoClaw Hook 支持，使 Python 代理能读写共享记忆。
 
+## 🧩 v0.4.3 最新拆分（Feature / Story / Step）
+
+> 这一段把最近已经落地的工作按 Feature → Story → Step 方式重新拆开，方便后续继续做同类拆分。
+
+### Feature 1: 交付与站点
+
+#### Story 1.1: Docker CI/CD 恢复
+- [x] Step 1: 修复 Hub Dockerfile 的依赖安装流程，改用 `npm install --omit=dev`
+- [x] Step 2: 补齐 `python3 / make / g++`，确保原生依赖可编译
+- [x] Step 3: 重新跑通 GitHub Actions 的 Docker build/publish
+
+#### Story 1.2: GitHub Pages 站点
+- [x] Step 1: 将 `site/` 改造成可配置 Hub URL 的静态首页
+- [x] Step 2: 发布 `gh-pages` 分支并同步 `index.html` / `quickstart.html` / `dashboard.html`
+- [x] Step 3: 修正 README 中的站点链接
+
+### Feature 2: 存储与检索
+
+#### Story 2.1: SQLite/MySQL 存储后端
+- [x] Step 1: 默认切换到本地 SQLite 存储
+- [x] Step 2: 增加 `DB_TYPE=mysql` 以及 `MYSQL_*` 配置
+- [x] Step 3: 支持旧 JSON 数据自动迁移
+
+#### Story 2.2: 精准记忆搜索
+- [x] Step 1: 让 `/memory/search` 优先匹配 key / title / tags
+- [x] Step 2: 补正文内容命中与中文子串匹配
+- [x] Step 3: 增加 scope 过滤并同步到 Web UI
+
+### Feature 3: 历史迁移
+
+#### Story 3.1: OpenClaw 迁移完整性
+- [x] Step 1: 扫描所有 workspace 根目录，避免漏导入
+- [x] Step 2: 导入真实的 root memory 文档与 session transcript
+- [x] Step 3: 跳过依赖树 / cache / 虚拟环境目录并补单测
+
+#### Story 3.2: Codex / Claude / Gemini 迁移
+- [x] Step 1: 读取各自真实的历史存储源
+- [x] Step 2: 用 mock Hub + live smoke 复核写入链路
+- [x] Step 3: 将迁移能力写回 README 与安装文档
+
 ## 🚀 v0.2 — P0 功能（当前）
 
 ### 核心已上线
@@ -150,6 +190,7 @@ woclaw migrate --all            # 执行所有迁移
 
 | 版本 | 日期 | 里程碑 |
 |------|------|--------|
+| v0.4.3 | 2026-04-05 | SQLite/MySQL、GitHub Pages、精准搜索、迁移完整性、文档对齐 ✅ |
 | v0.1 | 2026-03-30 | 项目立项、Hub 部署 ✅ |
 | v0.2 | 2026-03-31 | REST API、npm 发布、跨框架集成 ✅ |
 | v0.3 | 2026-04-01 | Tags/TTL 增强、Docker Hub Workflow ✅ |

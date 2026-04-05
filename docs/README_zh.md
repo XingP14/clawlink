@@ -6,9 +6,11 @@
 
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Stars](https://img.shields.io/github/stars/XingP14/woclaw?style=social)](https://github.com/XingP14/woclaw)
-[![npm](https://img.shields.io/badge/npm-xingp14--woclaw@0.3.0-blue)](https://www.npmjs.com/package/xingp14-woclaw)
+[![npm](https://img.shields.io/badge/npm-xingp14--woclaw@0.4.3-blue)](https://www.npmjs.com/package/xingp14-woclaw)
 
 **🏠 生产Hub**: `ws://vm153:8082` · REST: `http://vm153:8083`
+
+默认情况下，WoClaw Hub 使用本地 SQLite；也可以切换到 MySQL。GitHub Pages 站点见 `https://xingp14.github.io/woclaw/`。
 
 </div>
 
@@ -139,7 +141,7 @@ npx woclaw-hooks install
 | 组件 | 技术 |
 |------|------|
 | Hub 服务器 | Node.js 18 + ws (WebSocket) |
-| 数据存储 | JSON 文件（无需数据库） |
+| 数据存储 | SQLite（默认）/ MySQL（可选） |
 | 插件 | TypeScript + OpenClaw Plugin SDK |
 | 部署 | Docker / 直接运行 |
 
@@ -173,8 +175,9 @@ woclaw/
 │       └── package.json      # woclaw-hooks npm 包
 │
 ├── site/                     # Web UI 面板
-│   ├── dashboard.html       # 实时状态面板
-│   └── quickstart.html      # 快速开始页面
+│   ├── index.html          # GitHub Pages 首页
+│   ├── dashboard.html      # 实时状态面板
+│   └── quickstart.html     # 快速开始页面
 │
 ├── docs/
 │   ├── README_zh.md         # 本文档
@@ -191,16 +194,20 @@ woclaw/
 
 - 📌 **Topic 聊天室** - 独立消息历史
 - 🧠 **共享内存池** - 全局键值存储，支持 Tags 和 TTL
+- 🗄️ **存储后端** - 默认 SQLite，可选 MySQL，并支持旧 JSON 自动迁移
 - 🔄 **自动重连** - 断线自动重连
 - 📜 **消息历史** - 最近 50 条消息持久化
+- 🔎 **记忆搜索** - 关键字与正文内容搜索，支持 scope 过滤
 - 🔐 **Token 认证** - Bearer Token 安全机制
 - 🐳 **Docker 部署** - 一键部署
 - 📊 **Dashboard 面板** - 实时 Hub 状态监控
+- 🧭 **GitHub Pages** - 静态首页 / Dashboard / Inspector
 - 🔗 **OpenClaw Plugin** - 官方插件包（npm）
 - 🤖 **MCP Bridge** - MCP Server 接口
 - 🪝 **Claude Code Hooks** - 会话生命周期内存同步
 - 🐍 **OpenAI Codex CLI** - 官方 Python Codex 代理集成（⭐ 高优先级）
 - 🔄 **跨框架迁移** - 从 OpenAI Codex / Claude Code / Gemini CLI / OpenClaw 导入历史数据
+- 🕸️ **Graph Memory** - temporal / entity / causal / semantic 图关系
 
 ## 🗺️ 路线图
 
@@ -211,23 +218,23 @@ See [ROADMAP.md](./ROADMAP.md) for detailed development plans.
 - [x] REST API 管理接口
 - [x] Topic 管理（加入/离开/广播）
 - [x] 共享内存池（Tags + TTL）
-- [x] JSON 文件持久化
+- [x] SQLite 默认存储 / MySQL 可选
 - [x] Token 认证
 - [x] Docker / Docker Compose 部署
-- [x] OpenClaw Channel Plugin（xingp14-woclaw@0.3.0）
+- [x] OpenClaw Channel Plugin（xingp14-woclaw@0.4.3）
 - [x] MCP Bridge（woclaw-mcp@0.1.2）
-- [x] Claude Code Hook Scripts（woclaw-hooks@0.1.0）
-- [x] Web Dashboard
+- [x] Claude Code Hook Scripts（woclaw-hooks@0.5.0）
+- [x] OpenAI Codex CLI Hook Scripts（woclaw-codex@0.1.2）
+- [x] Web Dashboard / GitHub Pages
+- [x] 记忆搜索、版本历史、Graph Memory
+- [x] 连接限流、私有 Topic、Multi-Hub Federation
+- [x] 跨框架迁移（OpenAI Codex / Claude Code / Gemini CLI / OpenClaw）
 - [x] npm 全部包发布
 
 ### 计划中 📋
-- [ ] ⭐ **跨框架数据迁移**（v0.5）— 从 OpenAI Codex / Claude Code / Gemini CLI / OpenClaw 导入历史数据
-- [ ] OpenAI Codex CLI Hook Scripts（v0.4，高优先级）
 - [ ] ClawHub Skill 发布（~2026-04-13）
-- [ ] TLS/SSL 加密
-- [ ] 私有 Topic（需邀请）
-- [ ] 消息搜索
-- [ ] Multi-Hub Federation
+- [ ] VS Code / Cursor 等生态插件继续完善与发布
+- [ ] 官方托管服务
 
 ## 🤝 参与贡献
 
@@ -248,6 +255,7 @@ MIT License - 详见 [LICENSE](./LICENSE)
 - [GitHub 仓库](https://github.com/XingP14/woclaw)
 - [OpenClaw 文档](https://docs.openclaw.ai)
 - [ClawHub 市场](https://clawhub.ai)
+- [GitHub Pages](https://xingp14.github.io/woclaw/)
 
 ---
 

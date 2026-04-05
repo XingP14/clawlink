@@ -6,9 +6,9 @@
 [![GitHub Stars](https://img.shields.io/github/stars/XingP14/woclaw?style=social)](https://github.com/XingP14/woclaw)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![npm (scoped)](https://img.shields.io/npm/v/woclaw-hub?label=woclaw-hub)](https://www.npmjs.com/package/woclaw-hub)
-[![npm](https://img.shields.io/npm/v/xingp14-woclaw?label=xingp14-woclaw)](https://www.npmjs.com/package/xingp14-woclaw)
+[![npm](https://img.shields.io/npm/v/xingp14-woclaw?label=xingp14-woclaw%400.4.3)](https://www.npmjs.com/package/xingp14-woclaw)
 [![npm](https://img.shields.io/npm/v/woclaw-mcp?label=woclaw-mcp)](https://www.npmjs.com/package/woclaw-mcp)
-[![npm](https://img.shields.io/npm/v/woclaw-hooks?label=woclaw-hooks%400.4.0)](https://www.npmjs.com/package/woclaw-hooks)
+[![npm](https://img.shields.io/npm/v/woclaw-hooks?label=woclaw-hooks%400.5.0)](https://www.npmjs.com/package/woclaw-hooks)
 
 ## 问题背景
 
@@ -44,16 +44,22 @@ WoClaw Hub 是所有 AI Agent 的**网络原生共享大脑**。
 
 **一次上下文，所有 Agent 共享，实时同步。**
 
+默认情况下，Hub 使用本地 SQLite；也可以切换到 MySQL。GitHub Pages 站点见 `https://xingp14.github.io/woclaw/`。
+
 ## 功能特性
 
 | 功能 | 说明 |
 |------|------|
 | 🧠 **共享记忆池** | 全局键值存储，支持标签（Tags）和 TTL 过期 |
+| 🗄️ **存储后端** | 默认本地 SQLite，可选 MySQL，并支持旧 JSON 自动迁移 |
 | 📡 **Topic 订阅发布** | Agent 间实时消息路由 |
 | 🔗 **多框架支持** | 连接 OpenClaw、Claude Code、 Gemini CLI、OpenCode |
 | 🌉 **MCP Bridge** | 内置 MCP 服务器，供 MCP 化 Agent 使用 |
 | 🪝 **Hook 集成** | 通过生命周期钩子实现 LLM 监督的记忆同步 |
 | 📜 **消息历史** | 加入 Topic 时自动收到最近 50 条消息 |
+| 🔎 **记忆搜索** | 关键字与正文内容搜索，支持 scope 过滤 |
+| 🧭 **Web UI** | 支持 GitHub Pages 的静态首页、Dashboard 和 Inspector |
+| 🕸️ **图记忆** | 支持 temporal / entity / causal / semantic 图关系 |
 | 🔒 **Token 认证** | Bearer Token 保护 |
 | ⚡ **实时同步** | WebSocket 驱动，无需轮询 |
 
@@ -63,13 +69,13 @@ WoClaw Hub 是所有 AI Agent 的**网络原生共享大脑**。
 
 ```bash
 # 从 Docker Hub 拉取（推荐）
-docker pull xingp14/woclaw-hub:0.3.0
+docker pull xingp14/woclaw-hub:latest
 docker run -d \
   --name woclaw-hub \
   -p 8082:8082 -p 8083:8083 \
   -e AUTH_TOKEN=change-me \
   --restart unless-stopped \
-  xingp14/woclaw-hub:0.3.0
+  xingp14/woclaw-hub:latest
 ```
 
 > Docker Hub 镜像由 GitHub Actions docker-publish.yml 自动构建，使用 `hub/v*` 标签触发。详见 [docs/PUBLISH.md](./docs/PUBLISH.md)。
