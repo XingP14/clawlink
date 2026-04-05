@@ -1,0 +1,39 @@
+{
+  "name": "woclaw-vscode",
+  "displayName": "WoClaw",
+  "description": "WoClaw Hub integration for VS Code — view agents, topics, and memory",
+  "version": "0.1.0",
+  "publisher": "XingP14",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": ["Other"],
+  "main": "./out/extension.js",
+  "activationEvents": ["workspaceContains"],
+  "contributes": {
+    "configuration": {
+      "title": "WoClaw",
+      "properties": {
+        "woclaw.hubUrl": {
+          "type": "string",
+          "default": "http://localhost:8083",
+          "description": "WoClaw Hub REST API URL"
+        },
+        "woclaw.statusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Hub status in status bar"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.75.0",
+    "typescript": "^5.3.0"
+  }
+}
