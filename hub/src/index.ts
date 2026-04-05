@@ -3,7 +3,9 @@ import { RestServer } from './rest_server.js';
 import { ClawDB } from './db.js';
 import { Config } from './types.js';
 import { GraphStore } from './graph/store.js';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
+import { join, extname } from 'path';
+import http from 'http';
 
 const DEFAULT_CONFIG: Config = {
   port: parseInt(process.env.PORT || '8080'),
@@ -66,6 +68,29 @@ async function main() {
   // Start REST API server with access to db, topics, memory, graph
   const restServer = new RestServer(config, db, wsServer.getTopicsManager(), wsServer.getMemoryPool(), graphStore, wsServer);
   restServer.start();
+
+  // v1.0: Start Web UI static file server on port 8084
+  const uiPort = 8084;
+  const publicDir = join(process.cwd(), 'public');
+  if (existsSync(publicDir)) {
+    const mimeTypes: Record<string, string> = {
+      '.html': 'text/html', '.js': 'application/javascript',
+      '.css': 'text/css', '.json': 'application/json',
+      '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml',
+    };
+    const uiServer = http.createServer((req, res) => {
+      let filePath = join(publicDir, req.url === '/' ? 'index.html' : req.url.split('?')[0]);
+      if (!existsSync(filePath)) filePath = join(publicDir, 'index.html');
+      const ext = extname(filePath);
+      res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'text/plain' });
+      res.end(readFileSync(filePath));
+    });
+    uiServer.listen(uiPort, () => {
+      console.log(`  Web UI:    http://${config.host}:${uiPort}`);
+    });
+    process.on('SIGINT', () => { uiServer.close(); });
+    process.on('SIGTERM', () => { uiServer.close(); });
+  }
 
   console.log('[WoClaw] Server started successfully');
   console.log('');

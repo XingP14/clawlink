@@ -191,6 +191,11 @@ woclaw migrate --all            # 执行所有迁移
 | S20 | Graph Memory — 图数据库设计 | v1.0 | 2 | ~20min | ✅ 2026-04-05 |
 | S21 | Graph Memory — 核心实现 | v1.0 | 4 | ~3h | ✅ 2026-04-05 |
 | S22 | Token 轮换机制 | v1.0 | 3 | ~30min | ✅ 3/3 |
+| S23 | 私有 Topic（邀请制）| v1.0 | 3 | ~30min | ✅ |
+| S24 | Multi-Hub Federation | v1.0 | 4 | ~40min | ✅ |
+| S25 | Semantic Recall（意图感知检索）| v1.0 | 3 | ~30min | ✅ |
+| S26 | Deduplication | v1.0 | 3 | ~30min | ✅ |
+| S27 | Web UI 管理面板 | v1.0 | 3 | ~30min | 🔨 进行中 |
 
 ---
 
@@ -751,6 +756,32 @@ Semantic Recall = 关键词匹配 + 意图分类 + 语义相似度
   - WebSocket 消息中增加 conflictType 字段
 
 - [x] **S26-3（10min）：测试 + 文档** :white_check_mark: 2026-04-05
+
+### S27: Web UI 管理面板（v1.0）
+
+> 目标：简单的 Web 面板查看 Hub 状态、Topics、Agents、Memory
+
+**设计：**
+```
+Web UI = 纯静态 HTML + Vanilla JS（无框架依赖）
+  - 读取 REST API 动态渲染
+  - 无需认证（内网使用）
+  - 放在 hub/public/ 目录
+  - 端口：8084（HTTP）
+```
+
+- [ ] **S27-1（10min）：Web UI 静态页面框架 + 状态概览** :hammer: 进行中
+  - hub/public/ 目录
+  - index.html - 概览页（Hub 状态 + Stats）
+
+- [ ] **S27-2（10min）：Topics / Agents / Memory 视图** :hourglass: 待开始
+  - Topics 列表 + 每个 Topic 的消息
+  - Agents 在线状态
+  - Memory 搜索
+
+- [ ] **S27-3（10min）：部署 + 文档** :hourglass: 待开始
+  - Hub 启动时同时启动静态文件服务器
+  - README 新增 Web UI 章节
   - hub/test/dedup.test.ts — 9 tests :white_check_mark:
   - All 100 unit tests pass :white_check_mark:
   - hub/test/dedup.test.ts
