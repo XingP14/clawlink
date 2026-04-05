@@ -131,6 +131,19 @@ export class RestServer {
           res.writeHead(405);
           res.end(JSON.stringify({ error: 'Method not allowed' }));
         }
+      // v1.0: GET /memory/search?q=...&limit=10 -- semantic recall by text similarity
+      } else if (path === '/memory/search' && method === 'GET') {
+        const q = url.searchParams.get('q');
+        const limit = Math.min(parseInt(url.searchParams.get('limit') || '10'), 50);
+        if (!q) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Missing required query param: q' }));
+          return;
+        }
+        const memories = this.memory.recallByText(q, limit);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ memories, count: memories.length, query: q }));
+        return;
       } else if (path.startsWith('/memory/')) {
         const memPath = path.slice(8);
         // v0.4: GET /memory/:key/versions

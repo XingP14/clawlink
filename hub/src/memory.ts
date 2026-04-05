@@ -3,8 +3,36 @@ import { DBMemory, DBMemoryVersion, OutboundMessage } from './types.js';
 
 // Semantic Recall - Option A: Keyword + Scoring (no external deps)
 // Stop words to filter from queries
+// Simple text similarity: Jaccard index on word bigrams (no external deps)
+// Returns score from 0 (no similarity) to ~1 (very similar)
+function computeTextSimilarity(query: string, text: string): number {
+  const tokenize = (s: string) =>
+    s.toLowerCase().replace(/[^\w\s]/g, ' ').split(/\s+/).filter(t => t.length > 1 && !STOP_WORDS.has(t));
+
+  const qTokens = tokenize(query);
+  const tTokens = tokenize(text);
+  if (qTokens.length === 0 || tTokens.length === 0) return 0;
+
+  // Bigram set for better semantic matching
+  const bigrams = (tokens: string[]) => {
+    const set = new Set<string>();
+    for (let i = 0; i < tokens.length - 1; i++) set.add(tokens[i] + '|' + tokens[i + 1]);
+    return set;
+  };
+
+  const qBigrams = bigrams(qTokens);
+  const tBigrams = bigrams(tTokens);
+
+  let intersection = 0;
+  for (const bg of qBigrams) if (tBigrams.has(bg)) intersection++;
+  if (intersection === 0) return 0;
+
+  const union = qBigrams.size + tBigrams.size - intersection;
+  return intersection / union;
+}
+
 const STOP_WORDS = new Set([
-  'a','an','the','is','are','was','were','be','been','being',
+  'a','an','the','is','are','was','were','be','been','being','am',
   'have','has','had','do','does','did','will','would','could','should',
   'may','might','must','shall','can','need','dare','ought','used',
   'to','of','in','for','on','with','at','by','from','as','into',
@@ -116,6 +144,11 @@ export class MemoryPool {
         }
       }
 
+      // Semantic similarity boost: results similar to query score above threshold
+      const textForSim = (mem.value + ' ' + mem.key + ' ' + mem.tags.join(' '));
+      const similarity = computeTextSimilarity(query, textForSim);
+      if (similarity > 0.15) score += Math.round(similarity * 10);
+
       // Recency boost: entries updated in last 24h get +1 (tiebreaker only)
       const dayAgo = Date.now() - 86400000;
       const recencyBoost = mem.updatedAt > dayAgo ? 1 : 0;
@@ -133,6 +166,22 @@ export class MemoryPool {
       .filter(s => s.score > 0)
       .slice(0, limit)
       .map(s => s.mem);
+  }
+
+  // v1.0: Semantic Recall - pure text similarity search (Jaccard)
+  recallByText(query: string, limit: number = 10): DBMemory[] {
+    const all = this.getAll();
+    if (all.length === 0) return [];
+    const qTokens = new Set(query.toLowerCase().split(/[\s\W_]+/).filter((w: string) => w.length > 2));
+    const scored = all.map((mem: any) => {
+      const mTokens = new Set((mem.key + ' ' + mem.value).toLowerCase().split(/[\s\W_]+/).filter((w: string) => w.length > 2));
+      if (qTokens.size === 0 || mTokens.size === 0) return { mem, score: 0 };
+      const inter = new Set([...qTokens].filter((w: string) => mTokens.has(w)));
+      const union = new Set([...qTokens, ...mTokens]);
+      return { mem, score: inter.size / union.size };
+    });
+    scored.sort((a: any, b: any) => b.score - a.score);
+    return scored.slice(0, limit).map((s: any) => s.mem);
   }
 
   cleanupExpired(): number {
