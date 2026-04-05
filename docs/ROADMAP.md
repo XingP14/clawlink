@@ -733,7 +733,12 @@ Semantic Recall = 关键词匹配 + 意图分类 + 语义相似度
 返回值：{ success, conflict?, duplicate?, previousValue? }
 ```
 
-- [ ] **S26-1（10min）：去重 + 冲突检测逻辑** :hammer: 进行中
+- [x] **S26-1（10min）：去重 + 冲突检测逻辑** :white_check_mark: 2026-04-05
+  - WriteResult 接口：{ mem, duplicate, conflict, previousValue } :white_check_mark:
+  - write() 返回冲突信息 :white_check_mark:
+  - duplicate/conflict 时 skip notifySubscribers() :white_check_mark:
+  - REST POST /memory 返回 duplicate + conflict + previousValue :white_check_mark:
+  - vm153 已部署验证（duplicate=true, conflict=true 正常）:white_check_mark:
   - MemoryPool.write() 返回冲突信息
   - DBMemory.conflictInfo?: { previousValue, timestamp, updatedBy }
   - REST API 返回冲突 header（X-WoClaw-Conflict: true）
