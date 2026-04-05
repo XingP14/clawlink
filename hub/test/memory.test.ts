@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MemoryPool } from '../src/memory.js';
 import { ClawDB } from '../src/db.js';
-import { existsSync, rmSync } from 'fs';
+import { existsSync, mkdirSync, rmSync } from 'fs';
 
 describe('MemoryPool', () => {
   const testDir = '/tmp/woclaw-test-memory-' + Date.now();
@@ -9,181 +9,180 @@ describe('MemoryPool', () => {
   let mp: MemoryPool;
 
   beforeEach(() => {
+    mkdirSync(testDir, { recursive: true });
     db = new ClawDB(testDir);
     mp = new MemoryPool(db);
   });
 
-  afterEach(() => {
-    db.close();
+  afterEach(async () => {
+    await db.close();
     if (existsSync(testDir)) {
-      rmSync(testDir, { recursive: true });
+      rmSync(testDir, { recursive: true, force: true });
     }
   });
 
   describe('write / read', () => {
-    it('writes and reads memory', () => {
-      mp.write('project-name', 'my-app', 'agent1');
-      const mem = mp.read('project-name');
+    it('writes and reads memory', async () => {
+      await mp.write('project-name', 'my-app', 'agent1');
+      const mem = await mp.read('project-name');
       expect(mem?.value).toBe('my-app');
       expect(mem?.updatedBy).toBe('agent1');
     });
 
-    it('writes with tags', () => {
-      mp.write('key1', 'val1', 'agent1', ['project', 'important']);
-      const mem = mp.read('key1');
+    it('writes with tags', async () => {
+      await mp.write('key1', 'val1', 'agent1', ['project', 'important']);
+      const mem = await mp.read('key1');
       expect(mem?.tags).toContain('project');
       expect(mem?.tags).toContain('important');
     });
 
-    it('writes with TTL', () => {
-      mp.write('temp', 'data', 'agent1', [], 3600);
-      const mem = mp.read('temp');
+    it('writes with TTL', async () => {
+      await mp.write('temp', 'data', 'agent1', [], 3600);
+      const mem = await mp.read('temp');
       expect(mem?.ttl).toBe(3600);
       expect(mem?.expireAt).toBeGreaterThan(Date.now());
     });
 
-    it('returns undefined for non-existent key', () => {
-      expect(mp.read('nonexistent')).toBeUndefined();
+    it('returns undefined for non-existent key', async () => {
+      expect(await mp.read('nonexistent')).toBeUndefined();
     });
   });
 
   describe('delete', () => {
-    it('deletes memory entry', () => {
-      mp.write('key1', 'val1', 'agent1');
-      expect(mp.delete('key1')).toBe(true);
-      expect(mp.read('key1')).toBeUndefined();
+    it('deletes memory entry', async () => {
+      await mp.write('key1', 'val1', 'agent1');
+      expect(await mp.delete('key1')).toBe(true);
+      expect(await mp.read('key1')).toBeUndefined();
     });
 
-    it('returns false when deleting non-existent key', () => {
-      expect(mp.delete('nonexistent')).toBe(false);
+    it('returns false when deleting non-existent key', async () => {
+      expect(await mp.delete('nonexistent')).toBe(false);
     });
   });
 
   describe('getAll', () => {
-    it('returns all memory entries', () => {
-      mp.write('key1', 'val1', 'a');
-      mp.write('key2', 'val2', 'b');
-      mp.write('key3', 'val3', 'c');
-      const all = mp.getAll();
+    it('returns all memory entries', async () => {
+      await mp.write('key1', 'val1', 'a');
+      await mp.write('key2', 'val2', 'b');
+      await mp.write('key3', 'val3', 'c');
+      const all = await mp.getAll();
       expect(all.length).toBe(3);
     });
   });
 
   describe('queryByTag', () => {
-    it('queries memory by tag', () => {
-      mp.write('key1', 'val1', 'a', ['project']);
-      mp.write('key2', 'val2', 'b', ['research']);
-      mp.write('key3', 'val3', 'c', ['project', 'important']);
-      const project = mp.queryByTag('project');
+    it('queries memory by tag', async () => {
+      await mp.write('key1', 'val1', 'a', ['project']);
+      await mp.write('key2', 'val2', 'b', ['research']);
+      await mp.write('key3', 'val3', 'c', ['project', 'important']);
+      const project = await mp.queryByTag('project');
       expect(project.length).toBe(2);
       expect(project.map(m => m.key)).toContain('key1');
       expect(project.map(m => m.key)).toContain('key3');
     });
 
-    it('returns empty array for non-existent tag', () => {
-      mp.write('key1', 'val1', 'a', ['project']);
-      expect(mp.queryByTag('nonexistent')).toEqual([]);
+    it('returns empty array for non-existent tag', async () => {
+      await mp.write('key1', 'val1', 'a', ['project']);
+      expect(await mp.queryByTag('nonexistent')).toEqual([]);
     });
   });
 
   describe('cleanupExpired', () => {
-    it('removes expired entries', () => {
-      // Create expired entry directly in DB
-      const now = Date.now();
-      (db as any).data.memory.push({ key: 'expired', value: 'v', tags: [], ttl: 1, expireAt: now - 1000, updatedAt: now, updatedBy: 'a' });
-      mp.write('valid', 'v', 'a', [], 0);
-      const removed = mp.cleanupExpired();
+    it('removes expired entries', async () => {
+      await mp.write('expired', 'v', 'a', [], 1);
+      await mp.write('valid', 'v', 'a', [], 0);
+      await new Promise(resolve => setTimeout(resolve, 1100));
+      const removed = await mp.cleanupExpired();
       expect(removed).toBe(1);
-      expect(mp.getAll().map(m => m.key)).toEqual(['valid']);
+      expect((await mp.getAll()).map(m => m.key)).toEqual(['valid']);
     });
   });
 
   describe('subscriber notifications', () => {
-    it('notifies subscribers on memory write', () => {
+    it('notifies subscribers on memory write', async () => {
       const notifications: any[] = [];
       mp.subscribe('agent1', (msg) => notifications.push(msg));
-      mp.write('key1', 'val1', 'agent1', [], 0);
+      await mp.write('key1', 'val1', 'agent1', [], 0);
       mp.unsubscribe('agent1');
       expect(notifications.length).toBe(1);
       expect(notifications[0].type).toBe('memory_write');
     });
 
-    it('unsubscribe stops notifications', () => {
+    it('unsubscribe stops notifications', async () => {
       const notifications: any[] = [];
       mp.subscribe('agent1', (msg) => notifications.push(msg));
       mp.unsubscribe('agent1');
-      mp.write('key1', 'val1', 'agent1');
+      await mp.write('key1', 'val1', 'agent1');
       expect(notifications.length).toBe(0);
     });
   });
 
   describe('Semantic Recall (v0.4)', () => {
-    it('returns empty for stop-word-only query', () => {
-      mp.write('key1', 'the quick brown fox jumps', 'a');
-      expect(mp.recall('the is a').length).toBe(0);
+    it('returns empty for stop-word-only query', async () => {
+      await mp.write('key1', 'the quick brown fox jumps', 'a');
+      expect((await mp.recall('the is a')).length).toBe(0);
     });
 
-    it('returns matching entries for keyword query', () => {
-      mp.write('proj', 'my awesome project', 'a', ['project']);
-      mp.write('other', 'something else', 'b');
-      const results = mp.recall('awesome project');
+    it('returns matching entries for keyword query', async () => {
+      await mp.write('proj', 'my awesome project', 'a', ['project']);
+      await mp.write('other', 'something else', 'b');
+      const results = await mp.recall('awesome project');
       expect(results.length).toBeGreaterThan(0);
       expect(results[0].key).toBe('proj');
     });
 
-    it('boosts tag matches over value-only matches', () => {
-      mp.write('a', 'nodejs code', 'a', ['backend']);
-      mp.write('b', 'backend server setup', 'b', []);
-      const results = mp.recall('backend');
-      expect(results[0].key).toBe('a'); // tag match scores higher
+    it('boosts tag matches over value-only matches', async () => {
+      await mp.write('a', 'nodejs code', 'a', ['backend']);
+      await mp.write('b', 'backend server setup', 'b', []);
+      const results = await mp.recall('backend');
+      expect(results[0].key).toBe('a');
     });
 
-    it('applies intent filter to boost related tags', () => {
-      mp.write('a', 'deploy script', 'a', ['devops']);
-      mp.write('b', 'deploy docker container', 'b', ['devops', 'docker']);
-      const results = mp.recall('deploy', 'docker');
-      expect(results[0].key).toBe('b'); // intent=docker boosts docker tag
+    it('applies intent filter to boost related tags', async () => {
+      await mp.write('a', 'deploy script', 'a', ['devops']);
+      await mp.write('b', 'deploy docker container', 'b', ['devops', 'docker']);
+      const results = await mp.recall('deploy', 'docker');
+      expect(results[0].key).toBe('b');
     });
 
-    it('respects limit parameter', () => {
-      mp.write('k1', 'apple fruit', 'a');
-      mp.write('k2', 'banana fruit', 'a');
-      mp.write('k3', 'cherry fruit', 'a');
-      mp.write('k4', 'date fruit', 'a');
-      mp.write('k5', 'elderberry', 'a');
-      const results = mp.recall('fruit', undefined, 3);
+    it('respects limit parameter', async () => {
+      await mp.write('k1', 'apple fruit', 'a');
+      await mp.write('k2', 'banana fruit', 'a');
+      await mp.write('k3', 'cherry fruit', 'a');
+      await mp.write('k4', 'date fruit', 'a');
+      await mp.write('k5', 'elderberry', 'a');
+      const results = await mp.recall('fruit', undefined, 3);
       expect(results.length).toBe(3);
     });
 
-    it('returns empty for non-matching query', () => {
-      mp.write('key1', 'nodejs server', 'a');
-      expect(mp.recall('python django flask elasticsearch').length).toBe(0);
+    it('returns empty for non-matching query', async () => {
+      await mp.write('key1', 'nodejs server', 'a');
+      expect((await mp.recall('python django flask elasticsearch')).length).toBe(0);
     });
   });
 
   describe('Memory Versioning (v0.4)', () => {
-    it('getVersions returns empty array for new key', () => {
-      mp.write('key1', 'val1', 'agent1');
-      expect(mp.getVersions('key1')).toEqual([]);
+    it('getVersions returns empty array for new key', async () => {
+      await mp.write('key1', 'val1', 'agent1');
+      expect(await mp.getVersions('key1')).toEqual([]);
     });
 
-    it('getVersions returns versions when key is updated', () => {
-      mp.write('key1', 'val1', 'agent1');
-      mp.write('key1', 'val2', 'agent2');
-      const versions = mp.getVersions('key1');
+    it('getVersions returns versions when key is updated', async () => {
+      await mp.write('key1', 'val1', 'agent1');
+      await mp.write('key1', 'val2', 'agent2');
+      const versions = await mp.getVersions('key1');
       expect(versions.length).toBe(1);
       expect(versions[0].value).toBe('val1');
       expect(versions[0].version).toBe(1);
       expect(versions[0].updatedBy).toBe('agent1');
     });
 
-    it('getVersions returns multiple versions in descending order', () => {
-      mp.write('key1', 'v1', 'a1', ['tag1'], 100);
-      mp.write('key1', 'v2', 'a2', ['tag2'], 200);
-      mp.write('key1', 'v3', 'a3', ['tag3'], 300);
-      const versions = mp.getVersions('key1');
+    it('getVersions returns multiple versions in descending order', async () => {
+      await mp.write('key1', 'v1', 'a1', ['tag1'], 100);
+      await mp.write('key1', 'v2', 'a2', ['tag2'], 200);
+      await mp.write('key1', 'v3', 'a3', ['tag3'], 300);
+      const versions = await mp.getVersions('key1');
       expect(versions.length).toBe(2);
-      // Newest first
       expect(versions[0].value).toBe('v2');
       expect(versions[0].version).toBe(2);
       expect(versions[0].tags).toEqual(['tag2']);
@@ -194,27 +193,27 @@ describe('MemoryPool', () => {
       expect(versions[1].ttl).toBe(100);
     });
 
-    it('current value is preserved, only old values in versions', () => {
-      mp.write('key1', 'current', 'agent1');
-      mp.write('key1', 'old', 'agent2');
-      const mem = mp.read('key1');
+    it('current value is preserved, only old values in versions', async () => {
+      await mp.write('key1', 'current', 'agent1');
+      await mp.write('key1', 'old', 'agent2');
+      const mem = await mp.read('key1');
       expect(mem?.value).toBe('old');
       expect(mem?.updatedBy).toBe('agent2');
-      const versions = mp.getVersions('key1');
+      const versions = await mp.getVersions('key1');
       expect(versions.length).toBe(1);
-      expect(versions[0].value).toBe('current'); // first value saved as version
+      expect(versions[0].value).toBe('current');
     });
 
-    it('getVersions returns empty for non-existent key', () => {
-      expect(mp.getVersions('nonexistent')).toEqual([]);
+    it('getVersions returns empty for non-existent key', async () => {
+      expect(await mp.getVersions('nonexistent')).toEqual([]);
     });
 
-    it('getVersions does not affect other keys', () => {
-      mp.write('key1', 'val1', 'a1');
-      mp.write('key1', 'val2', 'a2');
-      mp.write('key2', 'other', 'a1');
-      const v1 = mp.getVersions('key1');
-      const v2 = mp.getVersions('key2');
+    it('getVersions does not affect other keys', async () => {
+      await mp.write('key1', 'val1', 'a1');
+      await mp.write('key1', 'val2', 'a2');
+      await mp.write('key2', 'other', 'a1');
+      const v1 = await mp.getVersions('key1');
+      const v2 = await mp.getVersions('key2');
       expect(v1.length).toBe(1);
       expect(v2.length).toBe(0);
     });

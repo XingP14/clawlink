@@ -6,12 +6,36 @@ import { GraphStore } from './graph/store.js';
 import { readFileSync, existsSync } from 'fs';
 import { join, extname } from 'path';
 import http from 'http';
+import type { StorageConfig } from './types.js';
+
+function buildDefaultStorageConfig(): StorageConfig {
+  const dbType = (process.env.DB_TYPE || 'sqlite').toLowerCase();
+  if (dbType === 'mysql') {
+    return {
+      type: 'mysql',
+      mysql: process.env.MYSQL_HOST && process.env.MYSQL_USER && process.env.MYSQL_DATABASE ? {
+        host: process.env.MYSQL_HOST,
+        port: process.env.MYSQL_PORT ? parseInt(process.env.MYSQL_PORT) : undefined,
+        user: process.env.MYSQL_USER,
+        password: process.env.MYSQL_PASSWORD || undefined,
+        database: process.env.MYSQL_DATABASE,
+        connectionLimit: process.env.MYSQL_CONNECTION_LIMIT ? parseInt(process.env.MYSQL_CONNECTION_LIMIT) : undefined,
+      } : undefined,
+    };
+  }
+
+  return {
+    type: 'sqlite',
+    sqlitePath: process.env.SQLITE_PATH || undefined,
+  };
+}
 
 const DEFAULT_CONFIG: Config = {
   port: parseInt(process.env.PORT || '8080'),
   restPort: parseInt(process.env.REST_PORT || '8081'),
   host: process.env.HOST || '0.0.0.0',
   dataDir: process.env.DATA_DIR || '/data',
+  storage: buildDefaultStorageConfig(),
   authToken: process.env.AUTH_TOKEN || 'change-me-in-production',
   tlsKey: process.env.TLS_KEY || undefined,
   tlsCert: process.env.TLS_CERT || undefined,
@@ -48,12 +72,19 @@ async function main() {
   console.log(`  REST Port: ${config.restPort}`);
   console.log(`  Host: ${config.host}`);
   console.log(`  Data Dir: ${config.dataDir}`);
+  console.log(`  Storage: ${config.storage?.type || 'sqlite'}`);
+  if (config.storage?.type === 'sqlite') {
+    console.log(`  SQLite Path: ${config.storage.sqlitePath || join(config.dataDir, 'woclaw.sqlite')}`);
+  } else if (config.storage?.type === 'mysql' && config.storage.mysql) {
+    console.log(`  MySQL Host: ${config.storage.mysql.host}:${config.storage.mysql.port || 3306}`);
+    console.log(`  MySQL Database: ${config.storage.mysql.database}`);
+  }
   console.log(`  Auth Token: ${config.authToken.substring(0, 8)}...`);
   console.log(`  TLS: ${config.tlsKey ? 'enabled (wss:// + https://)' : 'disabled (ws:// + http://)'}`);
   console.log('');
 
   // Initialize database
-  const db = new ClawDB(config.dataDir);
+  const db = new ClawDB(config);
   console.log('[WoClaw] Database initialized');
 
   // Initialize WebSocket server (this also creates TopicsManager and MemoryPool internally)
@@ -107,7 +138,9 @@ async function main() {
     console.log('[WoClaw] Shutting down...');
     restServer.close();
     wsServer.close();
-    process.exit(0);
+    void db.close().finally(() => {
+      process.exit(0);
+    });
   };
 
   process.on('SIGINT', shutdown);

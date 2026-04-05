@@ -33,8 +33,9 @@ describe('Token Rotation (S22)', () => {
     wsServer = new WSServer(config, db);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     wsServer.close();
+    await db.close();
   });
 
   it('getTokenStatus shows initial state (no grace period)', () => {

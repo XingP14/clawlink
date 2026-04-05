@@ -37,7 +37,13 @@ export class RestServer {
           cert: readFileSync(this.config.tlsCert!),
         };
         this.server = https.createServer(tlsOptions, (req, res) => {
-          this.handleRequest(req, res);
+          void this.handleRequest(req, res).catch((e) => {
+            console.error('[WoClaw] REST handler error:', e);
+            if (!res.headersSent) {
+              res.writeHead(500, { 'Content-Type': 'application/json' });
+            }
+            res.end(JSON.stringify({ error: 'Internal server error' }));
+          });
         });
         console.log(`[WoClaw] REST API running on https://${this.config.host}:${this.config.restPort} (TLS)`);
       } catch (e: any) {
@@ -46,7 +52,13 @@ export class RestServer {
       }
     } else {
       this.server = http.createServer((req, res) => {
-        this.handleRequest(req, res);
+        void this.handleRequest(req, res).catch((e) => {
+          console.error('[WoClaw] REST handler error:', e);
+          if (!res.headersSent) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+          }
+          res.end(JSON.stringify({ error: 'Internal server error' }));
+        });
       });
       console.log(`[WoClaw] REST API running on http://${this.config.host}:${this.config.restPort}`);
     }
@@ -54,7 +66,7 @@ export class RestServer {
     this.server.listen(this.config.restPort, this.config.host);
   }
 
-  private handleRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
+  private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
     // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
@@ -86,7 +98,7 @@ export class RestServer {
         this.handleHealth(res);
       } else if (path === '/topics') {
         if (method === 'GET') {
-          this.handleTopicsList(res);
+          await this.handleTopicsList(res);
         } else {
           res.writeHead(405);
           res.end(JSON.stringify({ error: 'Method not allowed' }));
@@ -109,9 +121,9 @@ export class RestServer {
         }
       } else if (path === '/memory') {
         if (method === 'GET') {
-          this.handleMemoryList(res, url.searchParams.get('tags'));
+          await this.handleMemoryList(res, url.searchParams.get('tags'));
         } else if (method === 'POST') {
-          this.handleMemoryWrite(req, res);
+          await this.handleMemoryWrite(req, res);
         } else {
           res.writeHead(405);
           res.end(JSON.stringify({ error: 'Method not allowed' }));
@@ -125,12 +137,12 @@ export class RestServer {
           res.writeHead(400, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ error: 'q (query) parameter required' }));
         } else {
-          this.handleMemoryRecall(res, q, intent || undefined, Math.min(limit, 50));
+          await this.handleMemoryRecall(res, q, intent || undefined, Math.min(limit, 50));
         }
       } else if (path.startsWith('/memory/tags/')) {
         const tag = decodeURIComponent(path.slice(13));
         if (method === 'GET') {
-          this.handleMemoryByTag(res, tag);
+          await this.handleMemoryByTag(res, tag);
         } else {
           res.writeHead(405);
           res.end(JSON.stringify({ error: 'Method not allowed' }));
@@ -144,7 +156,7 @@ export class RestServer {
           res.end(JSON.stringify({ error: 'Missing required query param: q' }));
           return;
         }
-        const memories = this.memory.recallByText(q, limit);
+        const memories = await this.memory.recallByText(q, limit);
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ memories, count: memories.length, query: q }));
         return;
@@ -154,7 +166,7 @@ export class RestServer {
         if (memPath.endsWith('/versions')) {
           const key = decodeURIComponent(memPath.slice(0, -9));
           if (method === 'GET') {
-            this.handleMemoryVersions(res, key);
+            await this.handleMemoryVersions(res, key);
           } else {
             res.writeHead(405);
             res.end(JSON.stringify({ error: 'Method not allowed' }));
@@ -162,9 +174,9 @@ export class RestServer {
         } else {
           const key = decodeURIComponent(memPath);
           if (method === 'GET') {
-            this.handleMemoryGet(res, key);
+            await this.handleMemoryGet(res, key);
           } else if (method === 'DELETE') {
-            this.handleMemoryDelete(res, key);
+            await this.handleMemoryDelete(res, key);
           } else {
             res.writeHead(405);
             res.end(JSON.stringify({ error: 'Method not allowed' }));
@@ -173,7 +185,7 @@ export class RestServer {
       } else if (path.startsWith('/topics/')) {
         const topicName = decodeURIComponent(path.slice(8));
         if (method === 'GET') {
-          this.handleTopicMessages(res, topicName, url.searchParams.get('limit'));
+          await this.handleTopicMessages(res, topicName, url.searchParams.get('limit'));
         } else if (method === 'POST') {
           // v1.0: Private topic sub-routes (/invite, /join) or regular topic creation
           const slashIdx = topicName.indexOf('/');
@@ -397,10 +409,10 @@ const result = this.graph.findPath(from, to, maxDepth);
     }));
   }
 
-  private handleTopicsList(res: http.ServerResponse): void {
+  private async handleTopicsList(res: http.ServerResponse): Promise<void> {
     const stats = this.topics.getStats();
     // Merge in-memory topics with persisted topics from ClawDB
-    const persistedTopics = this.db.getTopicStats();
+    const persistedTopics = await this.db.getTopicStats();
     const allTopicNames = new Set([
       ...stats.topicDetails.map(t => t.name),
       ...persistedTopics.map(t => t.name),
@@ -437,8 +449,8 @@ const result = this.graph.findPath(from, to, maxDepth);
     res.end(JSON.stringify({ rateLimits: statuses, count: statuses.length }));
   }
 
-  private handleMemoryList(res: http.ServerResponse, tagsFilter?: string | null): void {
-    let allMemory = this.memory.getAll();
+  private async handleMemoryList(res: http.ServerResponse, tagsFilter?: string | null): Promise<void> {
+    let allMemory = await this.memory.getAll();
     // v0.4: filter by tag (comma-separated for multiple)
     if (tagsFilter) {
       const tags = tagsFilter.split(',').map(t => t.trim());
@@ -458,43 +470,46 @@ const result = this.graph.findPath(from, to, maxDepth);
     }));
   }
 
-  private handleMemoryWrite(req: http.IncomingMessage, res: http.ServerResponse): void {
-    let body = '';
-    req.on('data', chunk => { body += chunk; });
-    req.on('end', () => {
-      try {
-        const { key, value, tags, ttl } = JSON.parse(body);
-        if (!key) {
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'key required' }));
-          return;
-        }
-        const { mem, duplicate, conflict, previousValue } = this.memory.write(key, value ?? '', 'rest-api', tags ?? [], ttl ?? 0);
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (conflict) headers['X-WoClaw-Conflict'] = 'true';
-        if (duplicate) headers['X-WoClaw-Duplicate'] = 'true';
-        res.writeHead(200, headers);
-        res.end(JSON.stringify({
-          key: mem.key,
-          value: mem.value,
-          tags: mem.tags,
-          ttl: mem.ttl,
-          expireAt: mem.expireAt,
-          updatedAt: mem.updatedAt,
-          updatedBy: mem.updatedBy,
-          duplicate,
-          conflict,
-          previousValue,
-        }));
-      } catch (e: any) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: e.message }));
-      }
+  private async handleMemoryWrite(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+    const body = await new Promise<string>((resolve, reject) => {
+      let data = '';
+      req.on('data', chunk => { data += chunk; });
+      req.on('end', () => resolve(data));
+      req.on('error', reject);
     });
+
+    try {
+      const { key, value, tags, ttl } = JSON.parse(body);
+      if (!key) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'key required' }));
+        return;
+      }
+      const { mem, duplicate, conflict, previousValue } = await this.memory.write(key, value ?? '', 'rest-api', tags ?? [], ttl ?? 0);
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (conflict) headers['X-WoClaw-Conflict'] = 'true';
+      if (duplicate) headers['X-WoClaw-Duplicate'] = 'true';
+      res.writeHead(200, headers);
+      res.end(JSON.stringify({
+        key: mem.key,
+        value: mem.value,
+        tags: mem.tags,
+        ttl: mem.ttl,
+        expireAt: mem.expireAt,
+        updatedAt: mem.updatedAt,
+        updatedBy: mem.updatedBy,
+        duplicate,
+        conflict,
+        previousValue,
+      }));
+    } catch (e: any) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: e.message }));
+    }
   }
 
-  private handleMemoryGet(res: http.ServerResponse, key: string): void {
-    const mem = this.memory.read(key);
+  private async handleMemoryGet(res: http.ServerResponse, key: string): Promise<void> {
+    const mem = await this.memory.read(key);
     if (!mem) {
       res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'Key not found' }));
@@ -512,8 +527,8 @@ const result = this.graph.findPath(from, to, maxDepth);
     }));
   }
 
-  private handleMemoryDelete(res: http.ServerResponse, key: string): void {
-    const deleted = this.memory.delete(key);
+  private async handleMemoryDelete(res: http.ServerResponse, key: string): Promise<void> {
+    const deleted = await this.memory.delete(key);
     if (!deleted) {
       res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'Key not found' }));
@@ -524,8 +539,8 @@ const result = this.graph.findPath(from, to, maxDepth);
   }
 
   // v0.4: Memory Versioning endpoint
-  private handleMemoryVersions(res: http.ServerResponse, key: string): void {
-    const versions = this.memory.getVersions(key);
+  private async handleMemoryVersions(res: http.ServerResponse, key: string): Promise<void> {
+    const versions = await this.memory.getVersions(key);
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
       key,
@@ -544,8 +559,8 @@ const result = this.graph.findPath(from, to, maxDepth);
   }
 
   // v0.4: Semantic Recall endpoint
-  private handleMemoryRecall(res: http.ServerResponse, query: string, intent?: string, limit: number = 10): void {
-    const results = this.memory.recall(query, intent, limit);
+  private async handleMemoryRecall(res: http.ServerResponse, query: string, intent?: string, limit: number = 10): Promise<void> {
+    const results = await this.memory.recall(query, intent, limit);
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
       query,
@@ -563,8 +578,8 @@ const result = this.graph.findPath(from, to, maxDepth);
     }));
   }
 
-  private handleMemoryByTag(res: http.ServerResponse, tag: string): void {
-    const results = this.memory.queryByTag(tag);
+  private async handleMemoryByTag(res: http.ServerResponse, tag: string): Promise<void> {
+    const results = await this.memory.queryByTag(tag);
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
       tag,
@@ -906,9 +921,9 @@ const result = this.graph.findPath(from, to, maxDepth);
 
   // ─────────────────────────────────────────────────────────────────
 
-  private handleTopicMessages(res: http.ServerResponse, topic: string, limit?: string | null): void {
+  private async handleTopicMessages(res: http.ServerResponse, topic: string, limit?: string | null): Promise<void> {
     const limitNum = Math.min(parseInt(limit || '50'), 200);
-    const messages = this.db.getMessages(topic, limitNum);
+    const messages = await this.db.getMessages(topic, limitNum);
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
       topic,

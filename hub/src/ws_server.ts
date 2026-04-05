@@ -133,7 +133,10 @@ export class WSServer {
     ws.on('message', (data: Buffer) => {
       try {
         const msg: InboundMessage = JSON.parse(data.toString());
-        this.handleMessage(agentId, msg);
+        void this.handleMessage(agentId, msg).catch((e) => {
+          console.error(`[WoClaw] Failed to process message from ${agentId}:`, e);
+          this.sendError(ws, 'internal_error', 'Failed to process message');
+        });
       } catch (e) {
         this.sendError(ws, 'invalid_message', 'Failed to parse message');
       }
@@ -149,7 +152,7 @@ export class WSServer {
     });
   }
 
-  private handleMessage(agentId: string, msg: InboundMessage): void {
+  private async handleMessage(agentId: string, msg: InboundMessage): Promise<void> {
     const agent = this.agents.get(agentId);
     if (!agent) return;
 
@@ -170,7 +173,7 @@ export class WSServer {
           this.sendError(agent.ws, 'missing_fields', 'topic and content required');
           return;
         }
-        this.handleChatMessage(agentId, msg.topic, msg.content);
+        await this.handleChatMessage(agentId, msg.topic, msg.content);
         break;
 
       case 'join':
@@ -178,7 +181,7 @@ export class WSServer {
           this.sendError(agent.ws, 'missing_fields', 'topic required');
           return;
         }
-        this.handleJoin(agentId, msg.topic);
+        await this.handleJoin(agentId, msg.topic);
         break;
 
       case 'leave':
@@ -194,7 +197,7 @@ export class WSServer {
           this.sendError(agent.ws, 'missing_fields', 'key required');
           return;
         }
-        this.handleMemoryWrite(agentId, msg.key, msg.value, msg.tags, msg.ttl);
+        await this.handleMemoryWrite(agentId, msg.key, msg.value, msg.tags, msg.ttl);
         break;
 
       case 'memory_read':
@@ -202,7 +205,7 @@ export class WSServer {
           this.sendError(agent.ws, 'missing_fields', 'key required');
           return;
         }
-        this.handleMemoryRead(agent.ws, agentId, msg.key);
+        await this.handleMemoryRead(agent.ws, agentId, msg.key);
         break;
 
       case 'topics_list':
@@ -234,7 +237,7 @@ export class WSServer {
         break;
 
       case 'delegate_result':
-        this.handleDelegateResult(agentId, msg);
+        await this.handleDelegateResult(agentId, msg);
         break;
 
       case 'delegate_cancel':
@@ -246,7 +249,7 @@ export class WSServer {
     }
   }
 
-  private handleChatMessage(fromAgent: string, topic: string, content: string): void {
+  private async handleChatMessage(fromAgent: string, topic: string, content: string): Promise<void> {
     const message = {
       id: uuidv4(),
       type: 'message' as const,
@@ -256,7 +259,7 @@ export class WSServer {
       timestamp: Date.now(),
     };
 
-    this.db.saveMessage({
+    await this.db.saveMessage({
       id: message.id,
       topic: message.topic,
       from: message.from,
@@ -278,14 +281,14 @@ export class WSServer {
     }
   }
 
-  private handleJoin(agentId: string, topic: string): void {
+  private async handleJoin(agentId: string, topic: string): Promise<void> {
     const agent = this.agents.get(agentId);
     if (!agent) return;
 
     this.topics.joinTopic(agentId, topic);
     agent.topics.add(topic);
 
-    const history = this.db.getMessages(topic, 50);
+    const history = await this.db.getMessages(topic, 50);
     history.reverse();
 
     this.send(agent.ws, {
@@ -339,8 +342,8 @@ export class WSServer {
     console.log(`[WoClaw] ${agentId} left topic: ${topic}`);
   }
 
-  private handleMemoryWrite(fromAgent: string, key: string, value: any, tags?: string[], ttl?: number): void {
-    const { mem, duplicate, conflict, previousValue } = this.memory.write(key, value, fromAgent, tags ?? [], ttl ?? 0);
+  private async handleMemoryWrite(fromAgent: string, key: string, value: any, tags?: string[], ttl?: number): Promise<void> {
+    const { mem, duplicate, conflict, previousValue } = await this.memory.write(key, value, fromAgent, tags ?? [], ttl ?? 0);
 
     const notification: OutboundMessage = {
       type: 'memory_update',
@@ -364,8 +367,8 @@ export class WSServer {
     }
   }
 
-  private handleMemoryRead(ws: WS, fromAgent: string, key: string): void {
-    const mem = this.memory.read(key);
+  private async handleMemoryRead(ws: WS, fromAgent: string, key: string): Promise<void> {
+    const mem = await this.memory.read(key);
     this.send(ws, {
       type: 'memory_value',
       key,
@@ -510,11 +513,12 @@ export class WSServer {
     }
   }
 
-  getStats() {
+  async getStats() {
+    const memory = await this.memory.getAll();
     return {
       agents: this.agents.size,
       topics: this.topics.getStats(),
-      memory: this.memory.getAll().length,
+      memory: memory.length,
       delegations: this.delegations.size,
     };
   }
@@ -648,7 +652,7 @@ export class WSServer {
   }
 
   // v0.4: Delegation - handle delegate_result
-  private handleDelegateResult(agentId: string, msg: import('./types.js').InboundMessage): void {
+  private async handleDelegateResult(agentId: string, msg: import('./types.js').InboundMessage): Promise<void> {
     const delegation = this.delegations.get(msg.id ?? '');
     if (!delegation || delegation.toAgent !== agentId) {
       const agent = this.agents.get(agentId);
@@ -665,7 +669,7 @@ export class WSServer {
 
     // Publish result to topic if specified
     if (delegation.topic) {
-      this.db.saveMessage({
+      await this.db.saveMessage({
         id: uuidv4(),
         topic: delegation.topic,
         from: agentId,

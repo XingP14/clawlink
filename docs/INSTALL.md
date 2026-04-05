@@ -110,6 +110,14 @@ npm run build
 export AUTH_TOKEN=your-secure-token
 export PORT=8082
 export DATA_DIR=/path/to/data
+# 默认不配置时使用本地 SQLite（DATA_DIR/woclaw.sqlite）
+# 如需 MySQL：
+# export DB_TYPE=mysql
+# export MYSQL_HOST=127.0.0.1
+# export MYSQL_PORT=3306
+# export MYSQL_USER=woclaw
+# export MYSQL_PASSWORD=secret
+# export MYSQL_DATABASE=woclaw
 
 # 运行
 npm start
@@ -257,7 +265,14 @@ spec:
 | `PORT` | 8082 | WebSocket 端口 |
 | `REST_PORT` | 8083 | REST API 端口 |
 | `HOST` | 0.0.0.0 | 绑定地址 |
-| `DATA_DIR` | /data | 数据存储目录 |
+| `DATA_DIR` | /data | 本地 SQLite 数据目录基址 |
+| `DB_TYPE` | sqlite | 存储后端：`sqlite` 或 `mysql` |
+| `SQLITE_PATH` | /data/woclaw.sqlite | SQLite 文件路径 |
+| `MYSQL_HOST` | — | MySQL 主机 |
+| `MYSQL_PORT` | 3306 | MySQL 端口 |
+| `MYSQL_USER` | — | MySQL 用户 |
+| `MYSQL_PASSWORD` | — | MySQL 密码 |
+| `MYSQL_DATABASE` | — | MySQL 数据库名 |
 | `AUTH_TOKEN` | change-me | 认证 Token |
 | `TLS_KEY` | — | TLS 私钥文件路径（设置后启用 wss:// + https://） |
 | `TLS_CERT` | — | TLS 证书文件路径（设置后启用 wss:// + https://） |
@@ -270,6 +285,7 @@ export AUTH_TOKEN=$(openssl rand -hex 32)
 export PORT=8082
 export DATA_DIR=/data/woclaw
 export HOST=0.0.0.0
+# 默认将数据写入 /data/woclaw/woclaw.sqlite
 ```
 
 ## 🔐 TLS/SSL 加密连接

@@ -75,17 +75,17 @@ export class MemoryPool {
   }
 
   // v1.0: Deduplication — check for existing value before writing
-  write(key: string, value: any, updatedBy: string, tags: string[] = [], ttl: number = 0): WriteResult {
+  async write(key: string, value: any, updatedBy: string, tags: string[] = [], ttl: number = 0): Promise<WriteResult> {
     const serialized = typeof value === 'string' ? value : JSON.stringify(value);
-    const existing = this.db.getMemory(key);
+    const existing = await this.db.getMemory(key);
     const duplicate = !!existing && existing.value === serialized;
     const conflict = !!existing && existing.value !== serialized;
     const previousValue = (duplicate || conflict) ? existing.value : undefined;
     const previousUpdatedAt = (duplicate || conflict) ? existing.updatedAt : undefined;
     const previousUpdatedBy = (duplicate || conflict) ? existing.updatedBy : undefined;
 
-    this.db.setMemory(key, serialized, updatedBy, tags, ttl);
-    const mem = this.db.getMemory(key)!;
+    await this.db.setMemory(key, serialized, updatedBy, tags, ttl);
+    const mem = (await this.db.getMemory(key))!;
     // Skip notification for duplicate writes (no actual change)
     if (!duplicate) {
       this.notifySubscribers({ type: 'memory_write', key, value: serialized, updatedBy });
@@ -112,34 +112,34 @@ export class MemoryPool {
     return { mem, duplicate, conflict, previousValue, previousUpdatedAt, previousUpdatedBy };
   }
 
-  read(key: string): DBMemory | undefined {
+  async read(key: string): Promise<DBMemory | undefined> {
     return this.db.getMemory(key);
   }
 
-  delete(key: string): boolean {
+  async delete(key: string): Promise<boolean> {
     return this.db.deleteMemory(key);
   }
 
-  getAll(): DBMemory[] {
+  async getAll(): Promise<DBMemory[]> {
     return this.db.getAllMemory();
   }
 
   // v0.4: query memory by tag
-  queryByTag(tag: string): DBMemory[] {
-    return this.getAll().filter(m => m.tags.includes(tag));
+  async queryByTag(tag: string): Promise<DBMemory[]> {
+    return (await this.getAll()).filter(m => m.tags.includes(tag));
   }
 
   // v0.4: Memory Versioning - get all historical versions for a key
-  getVersions(key: string): DBMemoryVersion[] {
+  async getVersions(key: string): Promise<DBMemoryVersion[]> {
     return this.db.getMemoryVersions(key);
   }
 
   // v0.4: Semantic Recall - keyword + scoring approach
-  recall(query: string, intent?: string, limit: number = 10): DBMemory[] {
+  async recall(query: string, intent?: string, limit: number = 10): Promise<DBMemory[]> {
     const keywords = tokenize(query);
     if (keywords.length === 0) return [];
 
-    const all = this.getAll();
+    const all = await this.getAll();
 
     // Score each entry
     const scored = all.map(mem => {
@@ -190,8 +190,8 @@ export class MemoryPool {
   }
 
   // v1.0: Semantic Recall - pure text similarity search (Jaccard)
-  recallByText(query: string, limit: number = 10): DBMemory[] {
-    const all = this.getAll();
+  async recallByText(query: string, limit: number = 10): Promise<DBMemory[]> {
+    const all = await this.getAll();
     if (all.length === 0) return [];
     const qTokens = new Set(query.toLowerCase().split(/[\s\W_]+/).filter((w: string) => w.length > 2));
     const scored = all.map((mem: any) => {
@@ -205,7 +205,7 @@ export class MemoryPool {
     return scored.slice(0, limit).map((s: any) => s.mem);
   }
 
-  cleanupExpired(): number {
+  async cleanupExpired(): Promise<number> {
     return this.db.cleanupExpired();
   }
 

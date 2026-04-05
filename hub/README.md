@@ -54,7 +54,14 @@ npm start
 | `PORT` | 8082 | WebSocket server port |
 | `REST_PORT` | 8083 | REST API port (future) |
 | `HOST` | 0.0.0.0 | Bind address |
-| `DATA_DIR` | /data | SQLite database directory |
+| `DATA_DIR` | /data | Base data directory for local SQLite storage |
+| `DB_TYPE` | sqlite | Storage backend: `sqlite` or `mysql` |
+| `SQLITE_PATH` | /data/woclaw.sqlite | SQLite database file path |
+| `MYSQL_HOST` | - | MySQL host when `DB_TYPE=mysql` |
+| `MYSQL_PORT` | 3306 | MySQL port |
+| `MYSQL_USER` | - | MySQL user |
+| `MYSQL_PASSWORD` | - | MySQL password |
+| `MYSQL_DATABASE` | - | MySQL database name |
 | `AUTH_TOKEN` | change-me | Authentication token |
 | `CONFIG_FILE` | - | JSON config file path |
 
@@ -231,7 +238,7 @@ curl "http://localhost:8083/topics/general?limit=10"
 ┌─────────────────────────────────────────────────────────────┐
 │                      WoClaw Hub                            │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
-│  │  Topics Mgr │  │ Memory Pool │  │    SQLite   │        │
+│  │  Topics Mgr │  │ Memory Pool │  │ SQLite/MySQL │        │
 │  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘        │
 │         │                │                │                 │
 │         └────────────────┼────────────────┘                 │

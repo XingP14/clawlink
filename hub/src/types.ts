@@ -5,6 +5,7 @@ export interface Config {
   restPort: number;
   host: string;
   dataDir: string;
+  storage?: StorageConfig;
   authToken: string;
   nextAuthToken?: string;   // v1.0: Token rotation — new token during grace period
   tokenGracePeriodMs?: number;  // v1.0: Grace period before old token expires (default: 5min)
@@ -14,6 +15,21 @@ export interface Config {
   hubId?: string;          // Unique ID for this hub (auto-generated if not set)
   federationPeers?: FederationPeer[];  // List of peer hubs to connect to
   federationPingIntervalMs?: number;  // Ping interval for federation connections (default: 30s)
+}
+
+export interface StorageConfig {
+  type?: 'sqlite' | 'mysql';
+  sqlitePath?: string;
+  mysql?: MySqlStorageConfig;
+}
+
+export interface MySqlStorageConfig {
+  host: string;
+  port?: number;
+  user: string;
+  password?: string;
+  database: string;
+  connectionLimit?: number;
 }
 
 export interface Agent<T = any> {
