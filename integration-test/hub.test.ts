@@ -281,6 +281,9 @@ describe('WoClaw Hub Integration Tests', () => {
             }
           });
           ws2.on('error', reject);
+          ws2.on('open', () => {
+            ws2.send(JSON.stringify({ type: 'join', topic: 'broadcast-topic' }));
+          });
           setTimeout(() => {
             ws1.send(JSON.stringify({ type: 'message', topic: 'broadcast-topic', content: msgContent }));
           }, 500);
@@ -300,7 +303,7 @@ describe('WoClaw Hub Integration Tests', () => {
         const ws = new WebSocket(`${HUB_URL}?agentId=ws-mem-reader&token=${AUTH_TOKEN}`);
         ws.on('message', (data) => {
           const msg = JSON.parse(data.toString());
-          if (msg.type === 'memory_read_response' && msg.key === 'ws-read-test') {
+          if (msg.type === 'memory_value' && msg.key === 'ws-read-test') {
             expect(msg.value).toBe('ws-read-value');
             ws.close();
             resolve(undefined);
