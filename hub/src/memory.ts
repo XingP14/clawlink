@@ -1,6 +1,16 @@
 import { ClawDB } from './db.js';
 import { DBMemory, DBMemoryVersion, OutboundMessage } from './types.js';
 
+// v1.0: Deduplication — write result with conflict detection
+export interface WriteResult {
+  mem: DBMemory;
+  duplicate: boolean;   // true if key existed with identical value
+  conflict: boolean;     // true if key existed with different value
+  previousValue?: any;   // previous value if duplicate or conflict
+  previousUpdatedAt?: number;
+  previousUpdatedBy?: string;
+}
+
 // Semantic Recall - Option A: Keyword + Scoring (no external deps)
 // Stop words to filter from queries
 // Simple text similarity: Jaccard index on word bigrams (no external deps)
@@ -64,11 +74,22 @@ export class MemoryPool {
     this.db = db;
   }
 
-  write(key: string, value: any, updatedBy: string, tags: string[] = [], ttl: number = 0): DBMemory {
+  // v1.0: Deduplication — check for existing value before writing
+  write(key: string, value: any, updatedBy: string, tags: string[] = [], ttl: number = 0): WriteResult {
     const serialized = typeof value === 'string' ? value : JSON.stringify(value);
+    const existing = this.db.getMemory(key);
+    const duplicate = !!existing && existing.value === serialized;
+    const conflict = !!existing && existing.value !== serialized;
+    const previousValue = (duplicate || conflict) ? existing.value : undefined;
+    const previousUpdatedAt = (duplicate || conflict) ? existing.updatedAt : undefined;
+    const previousUpdatedBy = (duplicate || conflict) ? existing.updatedBy : undefined;
+
     this.db.setMemory(key, serialized, updatedBy, tags, ttl);
     const mem = this.db.getMemory(key)!;
-    this.notifySubscribers({ type: 'memory_write', key, value: serialized, updatedBy });
+    // Skip notification for duplicate writes (no actual change)
+    if (!duplicate) {
+      this.notifySubscribers({ type: 'memory_write', key, value: serialized, updatedBy });
+    }
 
     // v1.0: Auto-create graph edges for this memory
     if (this.graphStore) {
@@ -88,7 +109,7 @@ export class MemoryPool {
       }
     }
 
-    return mem;
+    return { mem, duplicate, conflict, previousValue, previousUpdatedAt, previousUpdatedBy };
   }
 
   read(key: string): DBMemory | undefined {

@@ -716,6 +716,35 @@ Semantic Recall = 关键词匹配 + 意图分类 + 语义相似度
   - 相似度 > threshold 的结果 boost 上浮
 
 - [x] **S25-3（10min）：测试 + 文档** ✅ 2026-04-05
+
+### S26: Deduplication（v1.0）
+
+> 目标：检测并解决重复写入同一 key 的冲突
+
+**设计：**
+```
+冲突类型：
+  • UPDATE_CONFLICT — 两次写入同一 key，value 不同
+  • DUPLICATE_WRITE — 相同 key + value 重复写入
+检测策略：
+  • write(key) 时检查 key 是否已存在
+  • 存在但 value 不同 → 返回冲突警告（允许覆盖）
+  • 存在且 value 相同 → 返回 DUPLICATE，skip 写入
+返回值：{ success, conflict?, duplicate?, previousValue? }
+```
+
+- [ ] **S26-1（10min）：去重 + 冲突检测逻辑** :hammer: 进行中
+  - MemoryPool.write() 返回冲突信息
+  - DBMemory.conflictInfo?: { previousValue, timestamp, updatedBy }
+  - REST API 返回冲突 header（X-WoClaw-Conflict: true）
+
+- [ ] **S26-2（10min）：REST API + WebSocket 冲突通知** :hourglass: 待开始
+  - GET /memory/:key 返回 X-WoClaw-Conflict 头
+  - WebSocket 消息中增加 conflictType 字段
+
+- [ ] **S26-3（10min）：测试 + 文档** :hourglass: 待开始
+  - hub/test/dedup.test.ts
+  - README 新增 Deduplication 章节
   - STOP_WORDS 修复（添加 the/is/a）✅
   - All 91 unit tests pass ✅
   - README 新增 Semantic Recall 章节 ✅

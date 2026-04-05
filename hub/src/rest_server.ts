@@ -465,7 +465,7 @@ const result = this.graph.findPath(from, to, maxDepth);
           res.end(JSON.stringify({ error: 'key required' }));
           return;
         }
-        const mem = this.memory.write(key, value ?? '', 'rest-api', tags ?? [], ttl ?? 0);
+        const { mem, duplicate, conflict, previousValue } = this.memory.write(key, value ?? '', 'rest-api', tags ?? [], ttl ?? 0);
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({
           key: mem.key,
@@ -475,6 +475,9 @@ const result = this.graph.findPath(from, to, maxDepth);
           expireAt: mem.expireAt,
           updatedAt: mem.updatedAt,
           updatedBy: mem.updatedBy,
+          duplicate,
+          conflict,
+          previousValue,
         }));
       } catch (e: any) {
         res.writeHead(400, { 'Content-Type': 'application/json' });

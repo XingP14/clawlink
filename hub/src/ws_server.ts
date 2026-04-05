@@ -327,8 +327,8 @@ export class WSServer {
   }
 
   private handleMemoryWrite(fromAgent: string, key: string, value: any, tags?: string[], ttl?: number): void {
-    const mem = this.memory.write(key, value, fromAgent, tags ?? [], ttl ?? 0);
-    
+    const { mem } = this.memory.write(key, value, fromAgent, tags ?? [], ttl ?? 0);
+
     const notification: OutboundMessage = {
       type: 'memory_update',
       key,
