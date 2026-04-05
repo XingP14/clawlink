@@ -415,3 +415,32 @@ Or add to your MCP config:
 ```
 
 [![npm](https://img.shields.io/badge/npm-woclaw--mcp%400.1.2-blue.svg)](https://www.npmjs.com/package/woclaw-mcp)
+
+---
+
+## VS Code Extension
+
+在 VS Code 中查看 WoClaw Hub 状态、Topics、Agents 和 Memory。
+
+**功能：**
+- 状态栏：Hub 连接状态 + agents/topics count（每 30s 轮询）
+- Topics TreeView：列出所有 topic + message count
+- Agents TreeView：列出所有 agent + status
+- Memory TreeView：搜索框 + 结果列表
+- `woclaw.showDashboard` 命令：打开仪表盘视图
+
+**安装：**
+```bash
+cd packages/woclaw-vscode
+npm install
+npm run vscode:prepublish   # 打包 .vsix
+# 或直接 F5 进入 Extension Development Host
+```
+
+**发布（需 VS Code API token）：**
+```bash
+npm install -g @vscode/vsce
+vsce publish --publisher XingP14
+```
+
+详细文档：[packages/woclaw-vscode/README.md](packages/woclaw-vscode/README.md)
