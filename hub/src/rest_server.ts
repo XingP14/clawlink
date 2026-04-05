@@ -268,15 +268,51 @@ const result = this.graph.findPath(from, to, maxDepth);
           res.writeHead(404, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ error: e.message }));
         }
+      } else if (path === '/admin/token/status' && method === 'GET') {
+        this.handleTokenStatus(res);
+      } else if (path === '/admin/token/rotate' && method === 'POST') {
+        this.handleTokenRotate(req, res);
       } else {
-        res.writeHead(404);
-        res.end(JSON.stringify({ error: 'Not found' }));
+        res.writeHead(405);
+        res.end(JSON.stringify({ error: 'Method not allowed' }));
       }
     } catch (e: any) {
       console.error('[WoClaw] REST error:', e.message);
       res.writeHead(500, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: e.message }));
     }
+  }
+
+  // v1.0: Token rotation status
+  private handleTokenStatus(res: http.ServerResponse): void {
+    if (!this.wsServer) {
+      res.writeHead(503, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'WebSocket server not available' }));
+      return;
+    }
+    const status = this.wsServer.getTokenStatus();
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status }));
+  }
+
+  // v1.0: Token rotation — generate new token, old token valid during grace period
+  private handleTokenRotate(req: http.IncomingMessage, res: http.ServerResponse): void {
+    if (!this.wsServer) {
+      res.writeHead(503, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'WebSocket server not available' }));
+      return;
+    }
+    const url2 = new URL(req.url!, `http://${req.headers.host}`);
+    const graceMs = parseInt(url2.searchParams.get('gracePeriodMs') || '300000');
+    const newToken = Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+    const result = this.wsServer.rotateToken(newToken, graceMs);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      success: true,
+      newToken: result.newToken,
+      gracePeriodEnd: new Date(result.gracePeriodEnd).toISOString(),
+      gracePeriodMs: graceMs,
+    }));
   }
 
   private handleHealth(res: http.ServerResponse): void {

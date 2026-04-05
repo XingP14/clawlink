@@ -130,7 +130,7 @@ woclaw migrate --all            # 执行所有迁移
 ## 🔮 v1.0+ — 高级特性
 
 ### 记忆增强
-- [ ] Graph Memory — 图数据库后端，支持 temporal/entity/causal/semantic 边类型
+- [x] Graph Memory — 图数据库后端，支持 temporal/entity/causal/semantic 边类型 ✅ (S20+S21, 2026-04-05)
 - [ ] Semantic Recall — 意图感知检索
 - [ ] Deduplication — 自动去重和冲突检测
 
@@ -190,6 +190,7 @@ woclaw migrate --all            # 执行所有迁移
 | S19 | 连接限流 | v1.0 | 4 | ~40min | ✅ 2026-04-04 |
 | S20 | Graph Memory — 图数据库设计 | v1.0 | 2 | ~20min | ✅ 2026-04-05 |
 | S21 | Graph Memory — 核心实现 | v1.0 | 4 | ~3h | ✅ 2026-04-05 |
+| S22 | Token 轮换机制 | v1.0 | 3 | ~30min | ✅ 2/3 |
 
 ---
 
@@ -545,6 +546,61 @@ woclaw migrate --all            # 执行所有迁移
 > 目标：实现完整的 Graph Memory CRUD + 遍历查询 API
 
 - [x] **S21-1（10min）：节点 CRUD API** ✅ 2026-04-05
+  - `POST /graph/nodes` — 创建节点 ✅
+  - `GET /graph/nodes` — 列出节点（支持 type 过滤）✅
+  - `GET /graph/nodes/:id` — 获取节点详情 ✅
+  - `DELETE /graph/nodes/:id` — 删除节点 ✅
+  - Build ✅ + All tests ✅
+
+- [x] **S21-2（10min）：边 CRUD API** ✅ 2026-04-05
+  - `POST /graph/edges` — 创建边 ✅
+  - `GET /graph/edges` — 列出边（支持 source/target/type 过滤）✅
+  - `DELETE /graph/edges/:id` — 删除边 ✅
+  - `GET /graph/stats` — 图统计 ✅
+
+- [x] **S21-3（10min）：图遍历查询 API** ✅ 2026-04-05
+  - `GET /graph/traverse/:nodeId` — BFS 遍历邻接节点 ✅
+  - `GET /graph/paths/:from/:to` — 查找两节点间路径 ✅
+  - `GET /graph/related/:nodeId` — 获取相关节点 ✅
+
+- [x] **S21-4（10min）：自动边生成 + 单元测试** ✅ 2026-04-05
+  - `syncMemoryNode()` 自动创建 memory/agent/topic 节点 + entity 边 ✅
+  - `findSimilarMemories()` 自动评估 semantic 相似度 ✅
+  - `hub/test/graph.test.ts` — 16 个单元测试 ✅
+
+### S22: Token 轮换机制（v1.0）
+
+> 目标：支持在不中断服务的情况下轮换 Hub 认证 Token
+
+**设计：**
+```
+机制：
+  • Hub 配置支持两个 token（current + next）
+  • 新 token 生成后，旧 token 在宽限期内仍有效
+  • 宽限期结束后自动失效
+  • REST API /admin/token/rotate 生成新 token
+  • Hub 重启后恢复单 token 状态
+```
+
+- [x] **S22-1（10min）：设计 Token 轮换方案 + 配置结构** ✅ 2026-04-05
+  - `nextAuthToken` + `tokenGracePeriodMs` 配置字段 ✅
+  - WS auth 接受 current 或 next token ✅
+  - `rotateToken()` + `getTokenStatus()` WSServer 方法 ✅
+  - `hub/src/types.ts` 新增 `TokenRotationConfig` 类型
+  - Hub 启动时加载 currentToken + rotationGracePeriod
+  - 认证时支持 currentToken 和 nextToken 两个有效 token
+
+- [x] **S22-2（10min）：实现 `POST /admin/token/rotate` REST API** ✅ 2026-04-05
+  - `GET /admin/token/status` — 状态查询 ✅
+  - `POST /admin/token/rotate` — 轮换 Token（gracePeriodMs query param）✅
+  - 生成新 token，更新 currentToken
+  - 旧 token 进入 grace period（可配置，默认 5min）
+  - 返回新 token 和 grace period 截止时间
+
+- [x] **S22-3（10min）：单元测试 + 文档** ✅ 2026-04-05
+  - Build ✅ + All tests ✅
+  - `hub/test/token_rotation.test.ts`
+  - README 新增 Token Rotation 章节
   - `POST /graph/nodes` — 创建节点 ✅
   - `GET /graph/nodes` — 列出节点（支持 type 过滤）✅
   - `GET /graph/nodes/:id` — 获取节点详情 ✅

@@ -6,6 +6,8 @@ export interface Config {
   host: string;
   dataDir: string;
   authToken: string;
+  nextAuthToken?: string;   // v1.0: Token rotation — new token during grace period
+  tokenGracePeriodMs?: number;  // v1.0: Grace period before old token expires (default: 5min)
   tlsKey?: string;   // TLS key file path (enables wss://)
   tlsCert?: string;  // TLS cert file path (enables wss://)
 }

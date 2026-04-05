@@ -22,6 +22,9 @@ export class WSServer {
   private pingInterval: NodeJS.Timeout | null = null;
   private delegations: Map<string, import('./types.js').Delegation> = new Map();
   // Rate limiting
+  // v1.0: Token rotation
+  private gracePeriodMs: number = 5 * 60 * 1000;
+  private gracePeriodEnd: number | null = null;
   private rateLimits: Map<string, RateLimitEntry> = new Map();
   private rateLimitConfig: RateLimitConfig = {
     messages: DEFAULT_RATE_LIMIT_MESSAGES,
@@ -31,6 +34,7 @@ export class WSServer {
   constructor(config: Config, db: ClawDB) {
     this.config = config;
     this.db = db;
+    if (config.tokenGracePeriodMs) this.gracePeriodMs = config.tokenGracePeriodMs;
     this.topics = new TopicsManager();
     this.memory = new MemoryPool(db);
 
@@ -73,7 +77,10 @@ export class WSServer {
     const agentId = url.searchParams.get('agentId');
     const token = url.searchParams.get('token');
 
-    if (!agentId || token !== this.config.authToken) {
+    // v1.0: Token rotation — accept current or next token during grace period
+    const isValidToken = token === this.config.authToken ||
+      (this.config.nextAuthToken && token === this.config.nextAuthToken);
+    if (!agentId || !isValidToken) {
       ws.close(4001, 'Unauthorized');
       return;
     }
@@ -733,6 +740,26 @@ export class WSServer {
       });
     }
     return result;
+  }
+
+  // v1.0: Token rotation — swap current → next, old token valid during grace period
+  rotateToken(newToken: string, gracePeriodMs?: number): { oldToken: string; newToken: string; gracePeriodEnd: number } {
+    const oldToken = this.config.authToken;
+    const grace = gracePeriodMs ?? this.gracePeriodMs;
+    this.config.nextAuthToken = oldToken;
+    this.config.authToken = newToken;
+    this.gracePeriodEnd = Date.now() + grace;
+    this.gracePeriodMs = grace;
+    console.log(`[WoClaw] Token rotated. Grace ends at ${new Date(this.gracePeriodEnd).toISOString()}`);
+    return { oldToken, newToken, gracePeriodEnd: this.gracePeriodEnd };
+  }
+
+  getTokenStatus(): { currentTokenMasked: string; inGracePeriod: boolean; gracePeriodEnd: number | null } {
+    return {
+      currentTokenMasked: this.config.authToken.slice(0, 8) + '...',
+      inGracePeriod: this.gracePeriodEnd !== null && Date.now() < this.gracePeriodEnd,
+      gracePeriodEnd: this.gracePeriodEnd,
+    };
   }
 
   close(): void {
