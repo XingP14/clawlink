@@ -219,7 +219,7 @@ async function loadAgents() {
     }
     tb.innerHTML = agents.map(a => {
       const topics = (a.topics || []).join(', ') || '-';
-      const connected = a.connectedAt ? timeAgo(a.connectedAt * 1000) : '-';
+      const connected = a.connectedAt ? timeAgo(a.connectedAt) : '-';
       return `<tr>
         <td><strong>${esc(a.agentId)}</strong></td>
         <td>${esc(topics)}</td>
