@@ -10,6 +10,10 @@ export interface Config {
   tokenGracePeriodMs?: number;  // v1.0: Grace period before old token expires (default: 5min)
   tlsKey?: string;   // TLS key file path (enables wss://)
   tlsCert?: string;  // TLS cert file path (enables wss://)
+  // v1.0: Multi-Hub Federation
+  hubId?: string;          // Unique ID for this hub (auto-generated if not set)
+  federationPeers?: FederationPeer[];  // List of peer hubs to connect to
+  federationPingIntervalMs?: number;  // Ping interval for federation connections (default: 30s)
 }
 
 export interface Agent<T = any> {
@@ -202,6 +206,24 @@ export interface RateLimitStatus {
   windowMs: number;
   currentCount: number;
   oldestTimestamp: number | null;
+}
+
+// v1.0: Federation Types
+export interface FederationPeer {
+  hubId: string;
+  wsUrl: string;
+  federationToken: string;
+  status: 'disconnected' | 'connecting' | 'connected';
+  lastSeen: number;
+  connectedAgents: number;
+}
+
+export interface FederationMessage {
+  type: 'hub_info' | 'agent_message' | 'relay';
+  fromHubId: string;
+  toHubId: string;
+  agentId?: string;
+  payload?: any;
 }
 
 // Config defaults (can be overridden via env)

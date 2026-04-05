@@ -9,7 +9,7 @@ function mkTempDir() {
   return dir;
 }
 
-function createTestConfig(peers: Partial<FederationPeer>[] = []): Config {
+function createTestConfig(peers: Partial<FederationPeer>[] = [{}]): Config {
   return {
     port: 0,
     restPort: 0,

@@ -199,9 +199,10 @@ export class FederationManager {
   }
 
   /** Get status of all peers */
-  getPeersStatus(): Pick<FederationPeer, 'hubId' | 'status' | 'lastSeen' | 'connectedAgents'>[] {
+  getPeersStatus(): Pick<FederationPeer, 'hubId' | 'wsUrl' | 'status' | 'lastSeen' | 'connectedAgents'>[] {
     return (this.config.federationPeers || []).map(p => ({
       hubId: p.hubId,
+      wsUrl: p.wsUrl,
       status: p.status,
       lastSeen: p.lastSeen,
       connectedAgents: p.connectedAgents,

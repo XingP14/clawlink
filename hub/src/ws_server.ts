@@ -3,10 +3,11 @@ import { v4 as uuidv4 } from 'uuid';
 import https from 'https';
 import http from 'http';
 import { readFileSync } from 'fs';
-import { Agent, InboundMessage, OutboundMessage, Config, RateLimitEntry, RateLimitConfig, RateLimitStatus, DEFAULT_RATE_LIMIT_MESSAGES, DEFAULT_RATE_LIMIT_WINDOW_MS } from './types.js';
+import { Agent, InboundMessage, OutboundMessage, Config, RateLimitEntry, RateLimitConfig, RateLimitStatus, DEFAULT_RATE_LIMIT_MESSAGES, DEFAULT_RATE_LIMIT_WINDOW_MS, FederationPeer } from './types.js';
 import { TopicsManager } from './topics.js';
 import { MemoryPool } from './memory.js';
 import { ClawDB } from './db.js';
+import { FederationManager } from './federation.js';
 
 // Use ws WebSocket type explicitly
 type WS = InstanceType<typeof WSType>;
@@ -30,6 +31,8 @@ export class WSServer {
     messages: DEFAULT_RATE_LIMIT_MESSAGES,
     windowMs: DEFAULT_RATE_LIMIT_WINDOW_MS,
   };
+  // v1.0: Multi-Hub Federation
+  private federationManager: FederationManager;
 
   constructor(config: Config, db: ClawDB) {
     this.config = config;
@@ -37,6 +40,10 @@ export class WSServer {
     if (config.tokenGracePeriodMs) this.gracePeriodMs = config.tokenGracePeriodMs;
     this.topics = new TopicsManager();
     this.memory = new MemoryPool(db);
+    // v1.0: Initialize FederationManager
+    if (!config.hubId) config.hubId = `hub-${uuidv4().slice(0, 8)}`;
+    this.federationManager = new FederationManager(config);
+    this.federationManager.start();
 
     const useTLS = !!(config.tlsKey && config.tlsCert);
     let server: http.Server | https.Server;
@@ -766,11 +773,25 @@ export class WSServer {
     if (this.pingInterval) {
       clearInterval(this.pingInterval);
     }
+    this.federationManager?.stop();
     for (const [_, agent] of this.agents) {
       agent.ws.close(1001, 'Server shutting down');
     }
     this.wss.close();
     this.db.close();
     console.log('[WoClaw] Server closed');
+  }
+
+  // v1.0: Federation methods (delegated to FederationManager)
+  getFederationPeersStatus() {
+    return this.federationManager.getPeersStatus();
+  }
+
+  addFederationPeer(peer: FederationPeer) {
+    this.federationManager.addPeer(peer);
+  }
+
+  federationSendToAgent(targetHubId: string, agentId: string, payload: any): boolean {
+    return this.federationManager.sendToAgent(targetHubId, agentId, payload);
   }
 }
