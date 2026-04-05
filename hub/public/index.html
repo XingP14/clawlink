@@ -38,15 +38,31 @@
     .search-bar button { background: #238636; color: #fff; border: none; border-radius: 6px; padding: 8px 16px; cursor: pointer; font-size: 14px; }
     .search-bar button:hover { background: #2ea043; }
     .memory-result { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; }
+    .memory-result.clickable, .topic-row.clickable { cursor: pointer; transition: border-color .15s ease, transform .15s ease, background .15s ease; }
+    .memory-result.clickable:hover, .topic-row.clickable:hover { border-color: #58a6ff; background: #111827; transform: translateY(-1px); }
     .memory-result .key { color: #58a6ff; font-weight: 600; font-size: 13px; }
     .memory-result .value { color: #e6edf3; font-size: 13px; margin-top: 4px; word-break: break-all; }
     .memory-result .meta { color: #8b949e; font-size: 11px; margin-top: 4px; }
+    .detail-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 12px; }
+    .detail-box { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 14px; }
+    .detail-box h3 { color: #58a6ff; margin-bottom: 8px; font-size: 15px; }
+    .detail-meta { color: #8b949e; font-size: 11px; margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .detail-meta span { background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.14); padding: 2px 8px; border-radius: 999px; }
+    .detail-value { white-space: pre-wrap; word-break: break-word; color: #e6edf3; font-size: 13px; line-height: 1.55; }
+    .detail-list { display: flex; flex-direction: column; gap: 8px; }
+    .detail-item { background: #111827; border: 1px solid #30363d; border-radius: 6px; padding: 10px 12px; }
+    .detail-item .head { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; color: #8b949e; font-size: 11px; margin-bottom: 6px; }
+    .detail-item .body { color: #e6edf3; font-size: 13px; white-space: pre-wrap; word-break: break-word; }
+    .topic-row td:first-child { color: #58a6ff; font-weight: 600; }
     .empty { color: #8b949e; text-align: center; padding: 24px; font-size: 14px; }
     .error { background: #3d1d1d; border: 1px solid #f85149; border-radius: 6px; padding: 12px; color: #f85149; font-size: 13px; margin-top: 8px; }
     .loading { color: #8b949e; text-align: center; padding: 24px; }
     .refresh-btn { background: #21262d; color: #8b949e; border: 1px solid #30363d; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 12px; }
     .refresh-btn:hover { color: #e6edf3; border-color: #8b949e; }
     pre { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 12px; font-size: 12px; color: #8b949e; overflow: auto; }
+    @media (max-width: 900px) {
+      .detail-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -112,6 +128,16 @@
       <tbody id="fedBody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
     </table>
   </div>
+
+  <div class="panel active" style="display:block;margin-top:16px" id="panel-detail">
+    <div class="panel-header">
+      <div class="panel-title">Inspector</div>
+      <button class="refresh-btn" onclick="clearInspector()">Clear</button>
+    </div>
+    <div id="detailArea">
+      <div class="empty">Click a topic name or a memory search result to inspect details and history.</div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -147,6 +173,13 @@ function fmtUptime(s) {
   const m = Math.floor(s / 60);
   s = Math.floor(s % 60);
   return (d ? d + 'd ' : '') + (h ? h + 'h ' : '') + (m ? m + 'm ' : '') + s + 's';
+}
+
+function fmtTime(ts) {
+  if (!ts) return '-';
+  const n = typeof ts === 'string' ? Date.parse(ts) : ts;
+  if (!Number.isFinite(n)) return '-';
+  return new Date(n).toLocaleString();
 }
 
 // Tab switching
@@ -194,7 +227,7 @@ async function loadTopics() {
     document.getElementById('statTopics').textContent = topics.length;
     tb.innerHTML = topics.map(t => {
       const priv = t.isPrivate ? '<span class="badge badge-private">private</span>' : '<span class="badge badge-online">public</span>';
-      return `<tr>
+      return `<tr class="topic-row clickable" onclick="showTopicHistory(decodeURIComponent('${encodeURIComponent(t.name)}'))">
         <td><strong>${esc(t.name)}</strong></td>
         <td>${priv}</td>
         <td>${typeof t.agents === 'number' ? t.agents : (t.agents?.length || 0)}</td>
@@ -274,7 +307,7 @@ async function searchMemory() {
       return;
     }
     results.innerHTML = r.memories.map(m => `
-      <div class="memory-result">
+      <div class="memory-result clickable" onclick="showMemoryDetail(decodeURIComponent('${encodeURIComponent(m.key)}'))">
         <div class="key">${esc(m.key)}</div>
         <div class="value">${esc(String(m.value).substring(0, 300))}</div>
         <div class="meta">by ${esc(m.updatedBy)} &middot; ${timeAgo(m.updatedAt)} &middot; tags: ${(m.tags || []).join(', ') || 'none'}</div>
@@ -282,6 +315,108 @@ async function searchMemory() {
     `).join('');
   } catch (e) {
     results.innerHTML = `<div class="error">Search failed: ${e}</div>`;
+  }
+}
+
+function clearInspector() {
+  document.getElementById('detailArea').innerHTML = '<div class="empty">Click a topic name or a memory search result to inspect details and history.</div>';
+}
+
+function renderMemoryDetail(mem, versions) {
+  const tags = (mem.tags || []).map(t => `<span>${esc(t)}</span>`).join('');
+  const versionRows = (versions?.versions || []).map(v => `
+    <div class="detail-item">
+      <div class="head">
+        <span>v${esc(v.version)}</span>
+        <span>${fmtTime(v.updatedAt)} · ${esc(v.updatedBy || '?')}</span>
+      </div>
+      <div class="body">${esc(String(v.value ?? ''))}</div>
+      <div class="head" style="margin-top:6px">
+        <span>tags: ${(v.tags || []).join(', ') || 'none'}</span>
+        <span>ttl: ${v.ttl || 'none'}</span>
+      </div>
+    </div>
+  `).join('');
+  return `
+    <div class="detail-grid">
+      <div class="detail-box">
+        <h3>${esc(mem.key)}</h3>
+        <div class="detail-meta">
+          <span>updated by ${esc(mem.updatedBy || '?')}</span>
+          <span>${fmtTime(mem.updatedAt)}</span>
+          <span>ttl ${mem.ttl || 'none'}</span>
+          <span>${(mem.tags || []).length} tag(s)</span>
+        </div>
+        <div class="detail-value">${esc(String(mem.value ?? ''))}</div>
+      </div>
+      <div class="detail-box">
+        <h3>Versions</h3>
+        <div class="detail-meta">
+          <span>${versions?.count || 0} stored version(s)</span>
+          ${tags}
+        </div>
+        <div class="detail-list">
+          ${versionRows || '<div class="empty">No version history found.</div>'}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderTopicDetail(topic, payload) {
+  const messages = payload.messages || [];
+  const body = messages.length ? messages.map((m) => `
+    <div class="detail-item">
+      <div class="head">
+        <span>${fmtTime(m.timestamp)}</span>
+        <span>${esc(m.from || m.agent || 'system')}</span>
+      </div>
+      <div class="body">${esc(String(m.content ?? ''))}</div>
+    </div>
+  `).join('') : '<div class="empty">No messages found for this topic.</div>';
+  return `
+    <div class="detail-grid">
+      <div class="detail-box">
+        <h3>${esc(topic)}</h3>
+        <div class="detail-meta">
+          <span>${payload.count || 0} message(s)</span>
+          <span>limit 50</span>
+        </div>
+        <div class="detail-list">${body}</div>
+      </div>
+      <div class="detail-box">
+        <h3>Topic Summary</h3>
+        <div class="detail-meta">
+          <span>${payload.count || 0} message(s) loaded</span>
+        </div>
+        <div class="detail-value">Click another topic or a memory result to switch the inspector view.</div>
+      </div>
+    </div>
+  `;
+}
+
+async function showMemoryDetail(key) {
+  const el = document.getElementById('detailArea');
+  el.innerHTML = '<div class="loading">Loading memory detail...</div>';
+  try {
+    const [mem, versions] = await Promise.all([
+      api('/memory/' + encodeURIComponent(key)),
+      api('/memory/' + encodeURIComponent(key) + '/versions'),
+    ]);
+    el.innerHTML = renderMemoryDetail(mem, versions);
+  } catch (e) {
+    el.innerHTML = `<div class="error">Failed to load memory detail: ${esc(e.message || e)}</div>`;
+  }
+}
+
+async function showTopicHistory(topic) {
+  const el = document.getElementById('detailArea');
+  el.innerHTML = '<div class="loading">Loading topic history...</div>';
+  try {
+    const payload = await api('/topics/' + encodeURIComponent(topic) + '?limit=50');
+    el.innerHTML = renderTopicDetail(topic, payload);
+  } catch (e) {
+    el.innerHTML = `<div class="error">Failed to load topic history: ${esc(e.message || e)}</div>`;
   }
 }
 
