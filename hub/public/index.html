@@ -184,7 +184,8 @@ async function loadTopics() {
   const tb = document.getElementById('topicsBody');
   tb.innerHTML = '<tr><td colspan="4" class="loading">Loading...</td></tr>';
   try {
-    const topics = await api('/topics');
+    const payload = await api('/topics');
+    const topics = Array.isArray(payload) ? payload : (payload.topics || []);
     if (!topics || topics.length === 0) {
       tb.innerHTML = '<tr><td colspan="4" class="empty">No topics yet</td></tr>';
       document.getElementById('statTopics').textContent = '0';
@@ -196,7 +197,7 @@ async function loadTopics() {
       return `<tr>
         <td><strong>${esc(t.name)}</strong></td>
         <td>${priv}</td>
-        <td>${t.agents ? t.agents.length : 0}</td>
+        <td>${typeof t.agents === 'number' ? t.agents : (t.agents?.length || 0)}</td>
         <td>${t.inviteToken || '-'}</td>
       </tr>`;
     }).join('');
@@ -210,7 +211,8 @@ async function loadAgents() {
   const tb = document.getElementById('agentsBody');
   tb.innerHTML = '<tr><td colspan="3" class="loading">Loading...</td></tr>';
   try {
-    const agents = await api('/agents');
+    const payload = await api('/agents');
+    const agents = Array.isArray(payload) ? payload : (payload.agents || []);
     if (!agents || agents.length === 0) {
       tb.innerHTML = '<tr><td colspan="3" class="empty">No agents connected</td></tr>';
       return;
@@ -234,7 +236,8 @@ async function loadFederation() {
   const tb = document.getElementById('fedBody');
   tb.innerHTML = '<tr><td colspan="5" class="loading">Loading...</td></tr>';
   try {
-    const peers = await api('/federation/peers');
+    const payload = await api('/federation/peers');
+    const peers = Array.isArray(payload) ? payload : (payload.peers || []);
     if (!peers || peers.length === 0) {
       tb.innerHTML = '<tr><td colspan="5" class="empty">No federation peers configured</td></tr>';
       return;
