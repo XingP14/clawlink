@@ -132,7 +132,7 @@ woclaw migrate --all            # 执行所有迁移
 ### 记忆增强
 - [x] Graph Memory — 图数据库后端，支持 temporal/entity/causal/semantic 边类型 ✅ (S20+S21, 2026-04-05)
 - [x] Semantic Recall — 意图感知检索 ✅ (S10, 2026-04-04)
-- [ ] Deduplication — 自动去重和冲突检测
+- [x] Deduplication — S26
 
 ### 安全与扩展
 - [x] TLS/SSL (wss://) ✅ (S18, 2026-04-04)
