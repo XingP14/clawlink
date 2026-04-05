@@ -196,7 +196,7 @@ woclaw migrate --all            # 执行所有迁移
 | S25 | Semantic Recall（意图感知检索）| v1.0 | 3 | ~30min | ✅ |
 | S26 | Deduplication | v1.0 | 3 | ~30min | ✅ |
 | S27 | Web UI 管理面板 | v1.0 | 3 | ~30min | ✅ |
-| S28 | VS Code Extension | v1.0+ | 2 | ~20min | 🔨 进行中 |
+| S28 | VS Code Extension | v1.0+ | 2 | ~20min | ✅ 2026-04-05 |
 
 ---
 
@@ -222,12 +222,12 @@ VS Code Extension = TypeScript + VS Code API
   - ✅ statusBarItem 每 30s 轮询 + `woclaw.showDashboard` 命令
   - ✅ README.md + .gitignore
 
-- [ ] **S28-2（10min）：Tree View + package.json 发布配置** 
-  - Topics TreeView（列出所有 topic + message count）
-  - Agents TreeView（列出所有 agent + status）
-  - Memory TreeView（搜索框 + 结果列表）
-  - package.json 配置 vsce 发布（publisher: XingP14）
-  - README 添加 VS Code Extension 章节
+- [x] **S28-2（10min）：Tree View + package.json 发布配置** ✅ 2026-04-05
+  - Topics TreeView（列出所有 topic + message count）✅
+  - Agents TreeView（列出所有 agent + status）✅
+  - Memory TreeView（搜索框 + 结果列表）✅
+  - package.json 配置 vsce 发布（publisher: XingP14）✅
+  - README 添加 VS Code Extension 章节 ✅
 
 ## 🔨 Story 步骤拆分详情
 
