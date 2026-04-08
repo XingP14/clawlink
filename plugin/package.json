@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "node bin/woclaw.js",
-    "build": "mkdir -p dist && ./node_modules/.bin/tsc --project tsconfig.build.json && cp -r skills openclaw.plugin.json bin dist/",
+    "build": "mkdir -p dist && npx tsc --project tsconfig.build.json && cp -r skills openclaw.plugin.json bin dist/",
     "prepublishOnly": "npm run build",
     "test": "echo 'No tests yet' && exit 0"
   },
@@ -45,6 +45,7 @@
     "url": "https://github.com/XingP14/woclaw"
   },
   "devDependencies": {
+    "@types/ws": "^8.18.1",
     "typescript": "^5.9.3"
   }
 }

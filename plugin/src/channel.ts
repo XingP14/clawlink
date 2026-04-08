@@ -132,7 +132,7 @@ class WoClawChannelInstance {
         }
       });
 
-      this.ws.onmessage = (event) => {
+      this.ws.onmessage = (event: WebSocket.MessageEvent) => {
         try {
           const msg = JSON.parse(event.data.toString());
           this.handleMessage(msg);
@@ -141,12 +141,12 @@ class WoClawChannelInstance {
         }
       };
 
-      this.ws.onclose = (event) => {
+      this.ws.onclose = (event: WebSocket.CloseEvent) => {
         this.logger!.warn(`[WoClaw] Disconnected (code: ${event.code})`);
         this.scheduleReconnect();
       };
 
-      this.ws.onerror = (error) => {
+      this.ws.onerror = (error: WebSocket.ErrorEvent) => {
         this.logger!.error('[WoClaw] WebSocket error:', error);
       };
     } catch (e) {
