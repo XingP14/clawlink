@@ -61,6 +61,18 @@ Detailed setup and configuration live in [docs/README.md](./docs/README.md).
 - GitHub Pages: `https://xingp14.github.io/woclaw/`
 - Local Hub dashboard: `http://your-hub:8084`
 
+## Hermes Agent Support
+
+> Hermes Agent integration is planned for v0.6+. See [ROADMAP.md](./docs/ROADMAP.md#story-h1-hermes-agent-migration-compatibility) for details.
+
+**What's planned:**
+- Skills / shared-skills / workspace-agents / model-config migration
+- Messaging settings and memory compatibility assessment
+- Hook scripts for session lifecycle (start/stop)
+- Documentation and install guide
+
+**Current status:** Design and documentation in progress. Active development begins after v0.6 stable release.
+
 ## Documentation
 
 - [Detailed English docs](./docs/README.md)

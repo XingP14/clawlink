@@ -224,6 +224,26 @@ Then OpenCode can use built-in tools:
 
 Hermes Agent support is planned for a later release; the roadmap tracks migration, hooks, and memory/channel compatibility before it becomes a supported target.
 
+### Hermes Agent (Roadmap)
+
+WoClaw is evaluating Hermes Agent integration. The goal is **compatibility, not simple coverage** — aligning Hermes skills, channels, memory, and workspace instructions with the existing WoClaw/OpenClaw ecosystem.
+
+**Planned migration scope:**
+
+| Hermes Concept | WoClaw Target | Status |
+|---|---|---|
+| Skills / shared-skills | WoClaw shared memory | Planned |
+| Channels | WoClaw topics + agents | Planned |
+| Memories | Shared memory pool | Planned |
+| Workspace instructions | SOUL.md / context injection | Planned |
+
+**Before integration, WoClaw will:**
+1. Conduct a dry-run compatibility analysis (skills, channels, memory, workspace instructions)
+2. Map Hermes paths to WoClaw equivalents
+3. Document incompatibilities with rollback strategies
+
+Track progress at [docs/ROADMAP.md](./ROADMAP.md) (Story H1/H2/H3).
+
 ### 4b. Web UI Dashboard
 
 WoClaw Hub includes a built-in web dashboard (port 8084):
@@ -459,3 +479,23 @@ vsce publish --publisher XingP14
 ```
 
 Detailed docs: [packages/woclaw-vscode/README.md](../packages/woclaw-vscode/README.md)
+
+---
+
+## Hermes Agent Support (Roadmap)
+
+> Hermes Agent integration is tracked in [ROADMAP.md](./ROADMAP.md#story-h1-hermes-agent-migration-compatibility).
+
+**What's planned (v0.6+):**
+
+| Migration Item | Target | Notes |
+|---|---|---|
+| skills / shared-skills | Shared Memory | Directory scan + WoClaw Hub write |
+| workspace-agents | Agent Registry | Agent discovery via Hub |
+| model-config | Hub Config | Settings migration |
+| messaging-settings | Federation | Partial compatibility, rollback plan |
+| memory | Shared Memory Pool | Native format mapping |
+
+**Hook scripts:** SessionStart / SessionStop hooks using Hermes native lifecycle events.
+
+**Status:** Design in progress (H1). Documentation (H2) and site sync (H3) underway. Active development starts after v0.6 stable.

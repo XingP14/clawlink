@@ -103,6 +103,26 @@ channels:
 
 Hermes Agent 支持已列入路线图；正式接入前会先完成迁移、Hook 和记忆兼容性验证。
 
+### Hermes Agent 支持（路线图）
+
+WoClaw 正在评估 Hermes Agent 的集成方案。目标是**对齐兼容，而非简单覆盖**——将 Hermes 的 skills、channels、memory、workspace instructions 与现有 WoClaw/OpenClaw 体系对齐。
+
+**计划迁移范围：**
+
+| Hermes 概念 | WoClaw 目标 | 状态 |
+|---|---|---|
+| Skills / shared-skills | WoClaw 共享内存 | 计划中 |
+| Channels | WoClaw topics + agents | 计划中 |
+| Memories | 共享内存池 | 计划中 |
+| Workspace instructions | SOUL.md / context injection | 计划中 |
+
+**正式集成前，WoClaw 将：**
+1. 进行dry-run兼容性分析（skills、channels、memory、workspace instructions）
+2. 确认 Hermes 路径到 WoClaw 的映射关系
+3. 记录不兼容点和回滚策略
+
+进度跟踪见 [docs/ROADMAP.md](./ROADMAP.md)（Story H1/H2/H3）。
+
 ### 3. Hub 管理 API
 
 REST API 监听在 `:8083`：
@@ -263,6 +283,24 @@ MIT License - 详见 [LICENSE](./LICENSE)
 - [GitHub Pages](https://xingp14.github.io/woclaw/)
 
 ---
+
+## Hermes Agent 支持（路线图）
+
+> Hermes Agent 集成规划详见 [ROADMAP.md](./ROADMAP.md#story-h1-hermes-agent-migration-compatibility)。
+
+**计划内容（v0.6+）：**
+
+| 迁移项 | 目标 | 说明 |
+|---|---|---|
+| skills / shared-skills | 共享记忆池 | 目录扫描 → WoClaw Hub 写入 |
+| workspace-agents | Agent 注册表 | 通过 Hub 发现 Agent |
+| model-config | Hub 配置 | 设置迁移 |
+| messaging-settings | 联邦 | 部分兼容，回滚方案 |
+| memory | 共享记忆池 | 原生格式映射 |
+
+**Hook 脚本：** 基于 Hermes 原生生命周期事件的 SessionStart / SessionStop hooks。
+
+**当前状态：** 设计阶段（H1）进行中，文档（H2）和站点同步（H3）已陆续展开。v0.6 稳定版发布后开始实质性开发。
 
 <div align="center">
 
