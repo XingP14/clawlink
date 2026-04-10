@@ -189,7 +189,7 @@ woclaw migrate --all            # 执行所有迁移
   - 更新 lead 文案，列出完整支持框架（OpenAI Codex CLI, Claude Code, Gemini CLI, OpenClaw, Hermes Agent）
   - 强调跨框架共享记忆和 topic 消息路由能力
 - [x] **Step 2（10min）：更新 `site/quickstart.html` 的支持范围和提示** ✅ 2026-04-10
-- [ ] Step 3（10min）：更新 `site/dashboard.html` 的 tagline
+- [x] **Step 3（10min）：更新 `site/dashboard.html` 的 tagline** ✅ 2026-04-10
 
 ## 🔮 v1.0+ — 高级特性
 
