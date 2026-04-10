@@ -180,7 +180,7 @@ woclaw migrate --all            # 执行所有迁移
 - [ ] Step 3（10min）：记录 `messaging-settings` 与 `memory` 的不兼容点和回滚策略
 
 #### Story H2: Hermes Agent 文档
-- [ ] Step 1（10min）：在根目录 README 增加 Hermes roadmap 说明
+- [x] **Step 1（10min）：在根目录 README 增加 Hermes roadmap 说明** ✅ 2026-04-10
 - [ ] Step 2（10min）：在 `docs/README.md` 与 `docs/README_zh.md` 增加 Hermes roadmap 说明
 - [ ] Step 3（10min）：补充 Hermes 安装 / 迁移注意事项的文档链接位置
 
