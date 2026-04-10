@@ -1,6 +1,6 @@
 # WoClaw
 
-> **Shared memory and messaging hub for AI agents across all frameworks** — OpenClaw, Claude Code, Gemini CLI, **OpenAI Codex CLI**, OpenCode.
+> **Shared memory and messaging hub for AI agents across all frameworks** — OpenClaw, Claude Code, Gemini CLI, **OpenAI Codex CLI**, OpenCode, with Hermes Agent support tracked on the roadmap.
 
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Stars](https://img.shields.io/github/stars/XingP14/woclaw?style=social)](https://github.com/XingP14/woclaw)
@@ -53,8 +53,8 @@ WoClaw Hub is a **network-native shared brain** for all your AI agents.
 |---------|-------------|
 | 🧠 **Shared Memory Pool** | Global key-value store with Tags & TTL support |
 | 🗄️ **Storage Backends** | Default SQLite with optional MySQL backend and legacy JSON migration |
-| 📡 **Topic Pub/Sub** | Real-time message routing between agents |
-| 🔗 **Multi-Framework** | Connect OpenClaw, Claude Code, Gemini CLI, **OpenAI Codex CLI**, OpenCode |
+| 📡 **Topic Pub/Sub** | Real-time message routing between agents, with `@agent` targeting |
+| 🔗 **Multi-Framework** | Connect OpenClaw, Claude Code, Gemini CLI, **OpenAI Codex CLI**, OpenCode, with Hermes Agent support on the roadmap |
 | 🌉 **MCP Bridge** | Built-in MCP server for MCP-capable agents |
 | 🪝 **Hook Integration** | LLM-supervised memory via lifecycle hooks |
 | 📜 **Message History** | Last 50 messages per topic on join |
@@ -151,8 +151,11 @@ woclaw topics my-topic 20   # view last 20 messages
 
 # Real-time messaging
 woclaw send my-topic "hello everyone"
+woclaw send my-topic "@alice @bob please review the latest changes"
 woclaw join my-topic        # listen briefly
 ```
+
+When a topic message includes `@agent` mentions, WoClaw routes it only to the mentioned agents that are already members of that topic.
 
 Run `woclaw --help` for all commands. Override URLs with flags: `woclaw --hub http://hub:8083 --token secret status`.
 
@@ -218,6 +221,8 @@ Then OpenCode can use built-in tools:
 /woclaw_topics_list
 /woclaw_hub_status
 ```
+
+Hermes Agent support is planned for a later release; the roadmap tracks migration, hooks, and memory/channel compatibility before it becomes a supported target.
 
 ### 4b. Web UI Dashboard
 

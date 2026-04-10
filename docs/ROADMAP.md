@@ -6,11 +6,13 @@
 
 **WoClaw = Shared Memory + Messaging Hub for AI Agents**
 
-让 OpenClaw、Claude Code、Gemini CLI、**OpenAI Codex CLI**、OpenCode 等多个 AI 框架共享项目上下文、记忆和决策。解决"每个 AI 都从零开始"的问题。
+让 OpenClaw、Claude Code、Gemini CLI、**OpenAI Codex CLI**、OpenCode、Hermes Agent 等多个 AI 框架共享项目上下文、记忆和决策。解决"每个 AI 都从零开始"的问题。
 
 **核心方向：** 跨框架共享记忆 + 实时消息路由。
 
 > ⭐ **高优先级项目：OpenAI Codex CLI 集成** — OpenAI 官方 Python Codex 代理的 WoClaw Hook 支持，使 Python 代理能读写共享记忆。
+
+> 🧭 **路线图新增：Hermes Agent 支持** — 将 Hermes 的 skills / channel / memory / migration 兼容性纳入后续规划，目标是与现有 OpenClaw 体系对齐，而不是简单覆盖。
 
 ## 🧩 v0.4.3 最新拆分（Feature / Story / Step）
 
@@ -134,6 +136,7 @@
 | **Claude Code** | Session transcript, discovered facts, repo context | Shared Memory + Topics |
 | **Gemini CLI** | Conversation history, research findings | Shared Memory + Topics |
 | **OpenClaw** | Memory entries, session summaries, agent context | Shared Memory Pool |
+| **Hermes Agent** | Skills, channels, memories, workspace instructions | Shared Memory + Topics + Hooks |
 
 ### 迁移命令
 ```bash
@@ -158,6 +161,7 @@ woclaw migrate --all            # 执行所有迁移
 - [x] Hook 集成指南 — Gemini CLI（`docs/GEMINI-CLI-HOOKS.md`）✅ 2026-04-04
 - [x] Hook 集成指南 — Codex CLI / OpenCode（`docs/CODEX-CLI-HOOKS.md`）✅ 2026-04-04
 - [x] MCP Server 使用文档（`docs/MCP-SERVER.md`）✅ 2026-04-04
+- [ ] Hook 集成指南 — Hermes Agent
 - [ ] 视频演示
 
 ## 🔧 v0.6 — 生态完善
@@ -166,6 +170,11 @@ woclaw migrate --all            # 执行所有迁移
 - [x] Docker Hub 发布（credentials 配置）✅ 2026-04-04
 - [ ] ClawHub Skill 发布（2026-04-13 后）
 - [ ] VS Code / Cursor 插件（可选）
+
+### Hermes Agent 支持（roadmap）
+- [ ] Story: Hermes Agent 迁移兼容 — 复用既有 memory、skills、channels 与 workspace instructions 的迁移模型
+- [ ] Story: Hermes Agent 文档 — 安装、迁移、回滚与 GitHub Pages 说明
+- [ ] Story: Hermes Agent 站点同步 — GitHub Pages 首页 / Quickstart / Dashboard 文案统一
 
 ## 🔮 v1.0+ — 高级特性
 
