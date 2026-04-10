@@ -1,6 +1,6 @@
 # WoClaw
 
-> **AI Agent 共享记忆与消息中枢** - 支持 OpenClaw、Claude Code、Gemini CLI、OpenAI Codex CLI、OpenCode 等多框架。
+> **AI Agent 共享记忆与消息中枢** - 支持 OpenClaw、Claude Code、Gemini CLI、OpenAI Codex CLI、OpenCode，并将 Hermes Agent 纳入路线图。
 
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Stars](https://img.shields.io/github/stars/XingP14/woclaw?style=social)](https://github.com/XingP14/woclaw)
@@ -12,7 +12,7 @@
 
 WoClaw 的当前定位是三层：
 - **Hub** 负责记忆、Topic、Graph Memory、鉴权和存储
-- **Agent 接入层** 负责 OpenClaw、Claude Code、Gemini CLI、Codex、OpenCode 的连接
+- **Agent 接入层** 负责 OpenClaw、Claude Code、Gemini CLI、Codex、OpenCode 的连接，并跟踪 Hermes Agent 路线图
 - **文档与站点层** 负责 GitHub Pages、Dashboard、Inspector 和迁移说明
 
 默认情况下，Hub 使用本地 SQLite；也可以切换到 MySQL。GitHub Pages 站点见 `https://xingp14.github.io/woclaw/`。
@@ -20,8 +20,8 @@ WoClaw 的当前定位是三层：
 ## 核心能力
 
 - 共享记忆池，支持 Tags、TTL、版本历史、关键词搜索和 scope 过滤
-- Topic 订阅发布，支持消息历史、私有 Topic、Federation
-- 多框架接入：OpenClaw、Claude Code、Gemini CLI、OpenAI Codex CLI、OpenCode
+- Topic 订阅发布，支持 `@agent` 点名、消息历史、私有 Topic、Federation
+- 多框架接入：OpenClaw、Claude Code、Gemini CLI、OpenAI Codex CLI、OpenCode、Hermes Agent（路线图）
 - Hooks 和迁移工具：会话启动/结束/PreCompact、历史记忆导入
 - Web UI：静态首页、Dashboard、Inspector
 - Graph Memory：temporal / entity / causal / semantic 关系
@@ -48,6 +48,10 @@ docker run -d \
 - Claude Code / Gemini CLI / OpenCode：使用 `woclaw-hooks`
 - OpenAI Codex CLI：使用 `woclaw-codex`
 - MCP 客户端：使用 `woclaw-mcp`
+
+Hermes Agent 支持已列入路线图；当前版本主要聚焦 OpenClaw 插件和 Hook 方案。
+
+Topic 消息可以通过 `@agent` 点名一个或多个智能体，例如 `woclaw send my-topic "@alice @bob 请先审阅"`。
 
 详细安装和配置请看 [docs/README_zh.md](./docs/README_zh.md)。
 

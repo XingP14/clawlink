@@ -1,6 +1,6 @@
 # WoClaw
 
-> Shared memory and messaging hub for AI agents across OpenClaw, Claude Code, Gemini CLI, OpenAI Codex CLI, and OpenCode.
+> Shared memory and messaging hub for AI agents across OpenClaw, Claude Code, Gemini CLI, OpenAI Codex CLI, OpenCode, and Hermes Agent (roadmap).
 
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Stars](https://img.shields.io/github/stars/XingP14/woclaw?style=social)](https://github.com/XingP14/woclaw)
@@ -13,7 +13,7 @@
 
 WoClaw is organized into three layers:
 - The Hub layer handles memory, topics, graph memory, auth, and storage.
-- The adapter layer connects OpenClaw, Claude Code, Gemini CLI, Codex, and OpenCode.
+- The adapter layer connects OpenClaw, Claude Code, Gemini CLI, Codex, OpenCode, and tracks Hermes Agent support on the roadmap.
 - The documentation and site layer covers GitHub Pages, the dashboard, the inspector, and migration guides.
 
 By default, the Hub uses local SQLite storage. MySQL is optional.
@@ -21,8 +21,8 @@ By default, the Hub uses local SQLite storage. MySQL is optional.
 ## Core Capabilities
 
 - Shared memory with tags, TTL, version history, and keyword search
-- Topic pub/sub with history, private topics, and federation
-- Multi-framework adapters for OpenClaw, Claude Code, Gemini CLI, OpenAI Codex CLI, and OpenCode
+- Topic pub/sub with `@agent` mentions, history, private topics, and federation
+- Multi-framework adapters for OpenClaw, Claude Code, Gemini CLI, OpenAI Codex CLI, OpenCode, and Hermes Agent (roadmap)
 - Hooks and migration tools for session start/stop/PreCompact and historical imports
 - GitHub Pages-friendly landing page, dashboard, and inspector
 - Graph Memory with temporal, entity, causal, and semantic relationships
@@ -49,6 +49,10 @@ The default data file is `/data/woclaw.sqlite`. To switch to MySQL, set `DB_TYPE
 - Claude Code / Gemini CLI / OpenCode: use `woclaw-hooks`
 - OpenAI Codex CLI: use `woclaw-codex`
 - MCP clients: use `woclaw-mcp`
+
+Hermes Agent support is on the roadmap; current releases focus on the OpenClaw plugin and hook-based integrations.
+
+Topic messages can target one or more agents with `@agent` syntax, for example `woclaw send my-topic "@alice @bob review this"`.
 
 Detailed setup and configuration live in [docs/README.md](./docs/README.md).
 

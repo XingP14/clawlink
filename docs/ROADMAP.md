@@ -6,11 +6,13 @@
 
 **WoClaw = Shared Memory + Messaging Hub for AI Agents**
 
-让 OpenClaw、Claude Code、Gemini CLI、**OpenAI Codex CLI**、OpenCode 等多个 AI 框架共享项目上下文、记忆和决策。解决"每个 AI 都从零开始"的问题。
+让 OpenClaw、Claude Code、Gemini CLI、**OpenAI Codex CLI**、OpenCode、Hermes Agent 等多个 AI 框架共享项目上下文、记忆和决策。解决"每个 AI 都从零开始"的问题。
 
 **核心方向：** 跨框架共享记忆 + 实时消息路由。
 
 > ⭐ **高优先级项目：OpenAI Codex CLI 集成** — OpenAI 官方 Python Codex 代理的 WoClaw Hook 支持，使 Python 代理能读写共享记忆。
+
+> 🧭 **路线图新增：Hermes Agent 支持** — 将 Hermes 的 skills / channel / memory / migration 兼容性纳入后续规划，目标是与现有 OpenClaw 体系对齐，而不是简单覆盖。
 
 ## 🧩 v0.4.3 最新拆分（Feature / Story / Step）
 
@@ -134,6 +136,7 @@
 | **Claude Code** | Session transcript, discovered facts, repo context | Shared Memory + Topics |
 | **Gemini CLI** | Conversation history, research findings | Shared Memory + Topics |
 | **OpenClaw** | Memory entries, session summaries, agent context | Shared Memory Pool |
+| **Hermes Agent** | Skills, channels, memories, workspace instructions | Shared Memory + Topics + Hooks |
 
 ### 迁移命令
 ```bash
@@ -158,6 +161,7 @@ woclaw migrate --all            # 执行所有迁移
 - [x] Hook 集成指南 — Gemini CLI（`docs/GEMINI-CLI-HOOKS.md`）✅ 2026-04-04
 - [x] Hook 集成指南 — Codex CLI / OpenCode（`docs/CODEX-CLI-HOOKS.md`）✅ 2026-04-04
 - [x] MCP Server 使用文档（`docs/MCP-SERVER.md`）✅ 2026-04-04
+- [ ] Hook 集成指南 — Hermes Agent
 - [ ] 视频演示
 
 ## 🔧 v0.6 — 生态完善
@@ -166,6 +170,24 @@ woclaw migrate --all            # 执行所有迁移
 - [x] Docker Hub 发布（credentials 配置）✅ 2026-04-04
 - [ ] ClawHub Skill 发布（2026-04-13 后）
 - [ ] VS Code / Cursor 插件（可选）
+
+### Hermes Agent 支持（roadmap）
+> 下面把 Hermes 相关工作拆成 10 分钟内可完成的最小步骤，方便按心跳推进。
+
+#### Story H1: Hermes Agent 迁移兼容
+- [ ] Step 1（10min）：整理 Hermes dry-run 报告中的可迁移项与缺口
+- [ ] Step 2（10min）：确认 `skills` / `shared-skills` / `workspace-agents` / `model-config` 的目标路径映射
+- [ ] Step 3（10min）：记录 `messaging-settings` 与 `memory` 的不兼容点和回滚策略
+
+#### Story H2: Hermes Agent 文档
+- [ ] Step 1（10min）：在根目录 README 增加 Hermes roadmap 说明
+- [ ] Step 2（10min）：在 `docs/README.md` 与 `docs/README_zh.md` 增加 Hermes roadmap 说明
+- [ ] Step 3（10min）：补充 Hermes 安装 / 迁移注意事项的文档链接位置
+
+#### Story H3: Hermes Agent 站点同步
+- [ ] Step 1（10min）：更新 `site/index.html` 的首页文案
+- [ ] Step 2（10min）：更新 `site/quickstart.html` 的支持范围和提示
+- [ ] Step 3（10min）：更新 `site/dashboard.html` 的 tagline
 
 ## 🔮 v1.0+ — 高级特性
 
