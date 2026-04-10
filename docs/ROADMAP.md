@@ -198,8 +198,13 @@ woclaw migrate --all            # 执行所有迁移
 
 #### Story H2: Hermes Agent 文档
 - [x] **Step 1（10min）：在根目录 README 增加 Hermes roadmap 说明** ✅ 2026-04-10
-- [ ] Step 2（10min）：在 `docs/README.md` 与 `docs/README_zh.md` 增加 Hermes roadmap 说明
-- [ ] Step 3（10min）：补充 Hermes 安装 / 迁移注意事项的文档链接位置
+- [x] **Step 2（10min）：在 `docs/README.md` 与 `docs/README_zh.md` 增加 Hermes roadmap 说明** ✅ 2026-04-10
+  - docs/README.md 已有完整 "Hermes Agent (Roadmap)" 章节（H1-3 输出已整合）
+  - docs/README_zh.md 已有完整 "Hermes Agent 支持（路线图）" 章节
+- [x] **Step 3（10min）：补充 Hermes 安装 / 迁移注意事项的文档链接位置** ✅ 2026-04-10
+  - Connect Your Agents 部分已有 "Hermes Agent (Roadmap)" 说明 + 表格
+  - README_zh.md 功能特性部分已注明 "规划 Hermes Agent 兼容"
+  - 两个文档均已引用 docs/ROADMAP.md Story H1/H2/H3 进度链接
 
 #### Story H3: Hermes Agent 站点同步
 - [x] **Step 1（10min）：更新 `site/index.html` 的首页文案** ✅ 2026-04-10
