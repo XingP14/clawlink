@@ -172,9 +172,22 @@ woclaw migrate --all            # 执行所有迁移
 - [ ] VS Code / Cursor 插件（可选）
 
 ### Hermes Agent 支持（roadmap）
-- [ ] Story: Hermes Agent 迁移兼容 — 复用既有 memory、skills、channels 与 workspace instructions 的迁移模型
-- [ ] Story: Hermes Agent 文档 — 安装、迁移、回滚与 GitHub Pages 说明
-- [ ] Story: Hermes Agent 站点同步 — GitHub Pages 首页 / Quickstart / Dashboard 文案统一
+> 下面把 Hermes 相关工作拆成 10 分钟内可完成的最小步骤，方便按心跳推进。
+
+#### Story H1: Hermes Agent 迁移兼容
+- [ ] Step 1（10min）：整理 Hermes dry-run 报告中的可迁移项与缺口
+- [ ] Step 2（10min）：确认 `skills` / `shared-skills` / `workspace-agents` / `model-config` 的目标路径映射
+- [ ] Step 3（10min）：记录 `messaging-settings` 与 `memory` 的不兼容点和回滚策略
+
+#### Story H2: Hermes Agent 文档
+- [ ] Step 1（10min）：在根目录 README 增加 Hermes roadmap 说明
+- [ ] Step 2（10min）：在 `docs/README.md` 与 `docs/README_zh.md` 增加 Hermes roadmap 说明
+- [ ] Step 3（10min）：补充 Hermes 安装 / 迁移注意事项的文档链接位置
+
+#### Story H3: Hermes Agent 站点同步
+- [ ] Step 1（10min）：更新 `site/index.html` 的首页文案
+- [ ] Step 2（10min）：更新 `site/quickstart.html` 的支持范围和提示
+- [ ] Step 3（10min）：更新 `site/dashboard.html` 的 tagline
 
 ## 🔮 v1.0+ — 高级特性
 
