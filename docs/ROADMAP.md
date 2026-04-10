@@ -175,7 +175,13 @@ woclaw migrate --all            # 执行所有迁移
 > 下面把 Hermes 相关工作拆成 10 分钟内可完成的最小步骤，方便按心跳推进。
 
 #### Story H1: Hermes Agent 迁移兼容
-- [ ] Step 1（10min）：整理 Hermes dry-run 报告中的可迁移项与缺口
+- [x] **Step 1（10min）：整理 Hermes dry-run 报告中的可迁移项与缺口** ✅ 2026-04-10
+  - 输出：`docs/H1-1-HERMES-MIGRATION-DRYRUN.md`
+  - 分析了 Hermes 数据源：state.db, MEMORY.md, USER.md, skills/, config.yaml
+  - 确定 ✅ 可迁移项（sessions, memories, skills → hooks）
+  - 确定 ⚠️ 需适配项（session search, skill self-creation）
+  - 确定 ❌ 不兼容项（YAML config, hard limits, RL training）
+  - 输出了迁移命令设计和实现估算
 - [ ] Step 2（10min）：确认 `skills` / `shared-skills` / `workspace-agents` / `model-config` 的目标路径映射
 - [ ] Step 3（10min）：记录 `messaging-settings` 与 `memory` 的不兼容点和回滚策略
 
