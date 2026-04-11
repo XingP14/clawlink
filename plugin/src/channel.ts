@@ -418,4 +418,41 @@ export const woclawChannelPlugin: ChannelPlugin = {
   outbound: {
     deliveryMode: 'direct',
   },
+  // Lifecycle hooks - OpenClaw calls these on the plugin object directly
+  setChannelRuntime: (runtime: any) => {
+    const cfg = runtime?.cfg ?? {};
+    const channelsCfg = cfg?.channels?.['woclaw'];
+    const pluginCfg = cfg?.plugins?.entries?.['xingp14-woclaw']?.config;
+    const effectiveCfg = channelsCfg || pluginCfg || {};
+    const logger = runtime?.logger ?? {
+      info: console.error.bind(null, '[WoClaw]'),
+      warn: console.error.bind(null, '[WoClaw WARN:]'),
+      error: console.error.bind(null, '[WoClaw ERROR:]'),
+      debug: console.error.bind(null, '[WoClaw DEBUG:]'),
+    };
+    if (effectiveCfg.enabled !== false) {
+      const dispatchFn = (msg: any) => {
+        if (runtime?.dispatch) runtime.dispatch({ channel: 'woclaw', ...msg });
+      };
+      channelInstance.initialize(effectiveCfg, dispatchFn, logger);
+    }
+  },
+  register: (api: any) => {
+    const cfg = api?.cfg ?? {};
+    const channelsCfg = cfg?.channels?.['woclaw'];
+    const pluginCfg = cfg?.plugins?.entries?.['xingp14-woclaw']?.config;
+    const effectiveCfg = channelsCfg || pluginCfg || {};
+    const logger = api?.logger ?? {
+      info: console.error.bind(null, '[WoClaw]'),
+      warn: console.error.bind(null, '[WoClaw WARN:]'),
+      error: console.error.bind(null, '[WoClaw ERROR:]'),
+      debug: console.error.bind(null, '[WoClaw DEBUG:]'),
+    };
+    if (effectiveCfg.enabled !== false) {
+      const dispatchFn = (msg: any) => {
+        if (api?.runtime?.dispatch) api.runtime.dispatch({ channel: 'woclaw', ...msg });
+      };
+      channelInstance.initialize(effectiveCfg, dispatchFn, logger);
+    }
+  },
 };

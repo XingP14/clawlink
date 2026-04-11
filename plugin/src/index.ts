@@ -23,11 +23,14 @@ function initWoclaw(api: any) {
     const serviceKind = process.env.OPENCLAW_SERVICE_KIND?.trim();
     const serviceMarker = process.env.OPENCLAW_SERVICE_MARKER?.trim();
     const processArgs = process.argv.slice(2).join(' ');
+    const processName = process.argv[0] || '';
     const isGatewayService =
       serviceKind === 'gateway' ||
       serviceMarker === 'gateway' ||
       processArgs === 'gateway' ||
-      processArgs.startsWith('gateway ');
+      processArgs.startsWith('gateway ') ||
+      processName.includes('gateway') ||
+      process.argv.length <= 1;
     if (!isGatewayService) {
       const logger = api.logger ?? { info: console.error.bind(null, '[WoClaw]'), warn: console.error.bind(null, '[WoClaw] WARN:'), error: console.error.bind(null, '[WoClaw] ERROR:'), debug: console.error.bind(null, '[WoClaw] DEBUG:') };
       logger.debug('[WoClaw] Skipping auto-connect outside gateway service');
@@ -43,7 +46,12 @@ const entry = defineChannelPluginEntry({
   name: 'WoClaw',
   description: 'Connect to WoClaw Hub for topic-based multi-agent communication and shared memory.',
   plugin: woclawChannelPlugin,
+  setRuntime: (runtime) => {
+    console.error('[WoClaw] setRuntime called with cfg:', JSON.stringify(runtime?.cfg ? { channels: runtime.cfg.channels ? Object.keys(runtime.cfg.channels) : undefined, plugins: runtime.cfg.plugins ? 'exists' : undefined } : 'no cfg'));
+    initWoclaw({ cfg: runtime.cfg || runtime, runtime, logger: runtime.logger });
+  },
   registerFull: (api) => {
+    console.error('[WoClaw] registerFull called');
     initWoclaw(api);
   },
 });
