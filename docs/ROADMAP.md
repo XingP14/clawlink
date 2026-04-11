@@ -161,7 +161,7 @@ woclaw migrate --all            # 执行所有迁移
 - [x] Hook 集成指南 — Gemini CLI（`docs/GEMINI-CLI-HOOKS.md`）✅ 2026-04-04
 - [x] Hook 集成指南 — Codex CLI / OpenCode（`docs/CODEX-CLI-HOOKS.md`）✅ 2026-04-04
 - [x] MCP Server 使用文档（`docs/MCP-SERVER.md`）✅ 2026-04-04
-- [ ] Hook 集成指南 — Hermes Agent
+- [x] Hook 集成指南 — Hermes Agent（`docs/HERMES-HOOKS.md`）✅ 2026-04-11
 - [ ] 视频演示
 
 ## 🔧 v0.6 — 生态完善
