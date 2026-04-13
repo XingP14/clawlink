@@ -168,7 +168,7 @@ woclaw migrate --all            # 执行所有迁移
 
 ### 发布到生态
 - [x] Docker Hub 发布（credentials 配置）✅ 2026-04-04
-- [ ] ClawHub Skill 发布（2026-04-13 后）
+- [x] ClawHub Skill 发布 ✅ 2026-04-13（skill k97bq7et0sw5vm2meqc9yh6s5184sshr）
 - [ ] VS Code / Cursor 插件（可选）
 
 ### Hermes Agent 支持（roadmap）
