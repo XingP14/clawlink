@@ -40,17 +40,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: plugin/package-lock.json
 
       - name: Install dependencies
-        working-directory: plugin
-        run: npm install --ignore-scripts
+        run: npm install
 
       - name: TypeScript check
-        working-directory: plugin
         run: npx tsc --noEmit
+        working-directory: plugin
 
       - name: Build
-        working-directory: plugin
         run: npm run build
+        working-directory: plugin
