@@ -18,19 +18,19 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install dependencies
+      - name: Install dependencies (hub)
         working-directory: hub
         run: npm install
 
-      - name: TypeScript check
+      - name: TypeScript check (hub)
         working-directory: hub
         run: npx tsc --noEmit
 
-      - name: Build
+      - name: Build (hub)
         working-directory: hub
         run: npm run build
 
-  plugin-check:
+  plugin-lint:
     runs-on: ubuntu-latest
 
     steps:
@@ -41,8 +41,8 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install workspace
-        run: npm install --prefer-offline
+      - name: Install all workspaces
+        run: npm install
 
       - name: TypeScript check (plugin)
         run: npx tsc --noEmit
