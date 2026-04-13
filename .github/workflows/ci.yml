@@ -40,11 +40,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
 
-      - name: Install workspace dependencies
-        run: npm install
+      - name: Install workspace
+        run: npm install --prefer-offline
 
       - name: TypeScript check (plugin)
         run: npx tsc --noEmit
