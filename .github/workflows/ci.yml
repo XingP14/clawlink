@@ -45,10 +45,7 @@ jobs:
       
       - name: Install dependencies
         working-directory: plugin
-        run: npm install
-        env:
-          npm_config_retries: 3
-          npm_config_retry_delay: 1000
+        run: npm ci
       
       - name: TypeScript check
         working-directory: plugin
