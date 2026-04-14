@@ -194,6 +194,68 @@ export class ClawDB {
     await this.ensureReady();
     await this.storage.close();
   }
+
+  // ─── Sessions (delegated to storage) ───────────────────────────────────────
+
+  async setSession(session: DBSession): Promise<void> {
+    await this.ensureReady();
+    return (this.storage as any).setSession(session);
+  }
+  async getSession(id: string): Promise<DBSession | undefined> {
+    await this.ensureReady();
+    return (this.storage as any).getSession(id);
+  }
+  async getAllSessions(agentId?: string, framework?: string, limit = 50, offset = 0): Promise<DBSession[]> {
+    await this.ensureReady();
+    return (this.storage as any).getAllSessions(agentId, framework, limit, offset);
+  }
+  async deleteSession(id: string): Promise<boolean> {
+    await this.ensureReady();
+    return (this.storage as any).deleteSession(id);
+  }
+  async sessionSearch(query: string, limit = 20): Promise<DBSession[]> {
+    await this.ensureReady();
+    return (this.storage as any).sessionSearch(query, limit);
+  }
+  async addToExtractionQueue(sessionId: string, priority = 0): Promise<void> {
+    await this.ensureReady();
+    return (this.storage as any).addToExtractionQueue(sessionId, priority);
+  }
+  async getExtractionQueue(limit = 10): Promise<ExtractionQueueEntry[]> {
+    await this.ensureReady();
+    return (this.storage as any).getExtractionQueue(limit);
+  }
+  async updateExtractionQueueStatus(sessionId: string, status: string): Promise<void> {
+    await this.ensureReady();
+    return (this.storage as any).updateExtractionQueueStatus(sessionId, status);
+  }
+  async removeFromExtractionQueue(sessionId: string): Promise<void> {
+    await this.ensureReady();
+    return (this.storage as any).removeFromExtractionQueue(sessionId);
+  }
+  async addSessionFeedback(sessionId: string, agentId: string, adjustment: number, reason?: string): Promise<void> {
+    await this.ensureReady();
+    return (this.storage as any).addSessionFeedback(sessionId, agentId, adjustment, reason);
+  }
+  async getSessionFeedbackHistory(sessionId: string): Promise<DBSessionFeedback[]> {
+    await this.ensureReady();
+    return (this.storage as any).getSessionFeedbackHistory(sessionId);
+  }
+  async addMemoryFeedback(key: string, agentId: string, adjustment: number, reason?: string): Promise<void> {
+    await this.ensureReady();
+    return (this.storage as any).addMemoryFeedback(key, agentId, adjustment, reason);
+  }
+  async getMemoryFeedbackHistory(key: string): Promise<MemoryFeedback[]> {
+    await this.ensureReady();
+    return (this.storage as any).getMemoryFeedbackHistory(key);
+  }
+  async getEvictionCandidates(memoryThreshold: number, sessionThreshold: number, limit: number): Promise<{
+    memories: Array<{key: string; importance: number; lastAccessedAt: number; accessCount: number}>;
+    sessions: Array<{id: string; importance: number; lastAccessedAt: number; accessCount: number}>;
+  }> {
+    await this.ensureReady();
+    return (this.storage as any).getEvictionCandidates(memoryThreshold, sessionThreshold, limit);
+  }
 }
 
 class SqliteStorage implements DbStorage {
@@ -247,9 +309,69 @@ class SqliteStorage implements DbStorage {
       );
       CREATE INDEX IF NOT EXISTS idx_memory_versions_key_version
         ON memory_versions(key, version DESC);
+
+      CREATE TABLE IF NOT EXISTS sessions (
+        id TEXT PRIMARY KEY,
+        agent_id TEXT NOT NULL,
+        framework TEXT NOT NULL DEFAULT 'unknown',
+        started_at INTEGER NOT NULL,
+        ended_at INTEGER,
+        transcript TEXT NOT NULL DEFAULT '',
+        summary TEXT,
+        importance REAL NOT NULL DEFAULT 5.0,
+        access_count INTEGER NOT NULL DEFAULT 0,
+        last_accessed_at INTEGER,
+        tags TEXT NOT NULL DEFAULT '[]',
+        extracted INTEGER NOT NULL DEFAULT 0,
+        flagged INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_sessions_agent_id ON sessions(agent_id);
+      CREATE INDEX IF NOT EXISTS idx_sessions_started_at ON sessions(started_at DESC);
+
+      CREATE TABLE IF NOT EXISTS extraction_queue (
+        session_id TEXT PRIMARY KEY,
+        queued_at INTEGER NOT NULL,
+        priority INTEGER NOT NULL DEFAULT 0,
+        status TEXT NOT NULL DEFAULT 'pending',
+        retry_count INTEGER NOT NULL DEFAULT 0
+      );
+
+      CREATE TABLE IF NOT EXISTS session_feedback (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id TEXT NOT NULL,
+        agent_id TEXT NOT NULL,
+        adjustment REAL NOT NULL,
+        reason TEXT,
+        created_at INTEGER NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS memory_feedback (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        key TEXT NOT NULL,
+        agent_id TEXT NOT NULL,
+        adjustment REAL NOT NULL,
+        reason TEXT,
+        created_at INTEGER NOT NULL
+      );
     `);
 
+    // v1.0 migration: add importance/access_count/last_accessed_at to memory table
+    this.addColumnIfNotExists('memory', 'importance_score', 'REAL NOT NULL DEFAULT 5.0');
+    this.addColumnIfNotExists('memory', 'access_count', 'INTEGER NOT NULL DEFAULT 0');
+    this.addColumnIfNotExists('memory', 'last_accessed_at', 'INTEGER');
+
     await this.maybeImportLegacyData();
+  }
+
+  private addColumnIfNotExists(table: string, column: string, definition: string): void {
+    try {
+      this.db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+    } catch (e: any) {
+      if (!e.message.includes('duplicate column name')) {
+        throw e;
+      }
+    }
   }
 
   private async maybeImportLegacyData(): Promise<void> {
@@ -524,6 +646,127 @@ class SqliteStorage implements DbStorage {
       this.db.close();
     }
   }
+
+  // ─── Sessions ────────────────────────────────────────────────────────────
+
+  async setSession(session: DBSession): Promise<void> {
+    this.db.prepare(`
+      INSERT OR REPLACE INTO sessions
+        (id, agent_id, framework, started_at, ended_at, transcript, summary, importance, access_count, last_accessed_at, tags, extracted, flagged, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      session.id, session.agentId, session.framework, session.startedAt,
+      session.endedAt ?? null, session.transcript, session.summary ?? null,
+      session.importance, session.accessCount, session.lastAccessedAt ?? null,
+      JSON.stringify(session.tags), session.extracted ? 1 : 0, session.flagged ? 1 : 0,
+      session.createdAt
+    );
+  }
+
+  async getSession(id: string): Promise<DBSession | undefined> {
+    const row = this.db.prepare('SELECT * FROM sessions WHERE id = ?').get(id) as any;
+    return row ? this.mapSessionRow(row) : undefined;
+  }
+
+  async getAllSessions(agentId?: string, framework?: string, limit = 50, offset = 0): Promise<DBSession[]> {
+    let sql = 'SELECT * FROM sessions';
+    const params: any[] = [];
+    if (agentId) { sql += ' WHERE agent_id = ?'; params.push(agentId); }
+    if (framework) { sql += (agentId ? ' AND' : ' WHERE') + ' framework = ?'; params.push(framework); }
+    sql += ' ORDER BY started_at DESC LIMIT ? OFFSET ?';
+    params.push(limit, offset);
+    return (this.db.prepare(sql).all(...params) as any[]).map(r => this.mapSessionRow(r));
+  }
+
+  async deleteSession(id: string): Promise<boolean> {
+    const result = this.db.prepare('DELETE FROM sessions WHERE id = ?').run(id);
+    return result.changes > 0;
+  }
+
+  async sessionSearch(query: string, limit = 20): Promise<DBSession[]> {
+    const rows = this.db.prepare(`
+      SELECT * FROM sessions WHERE transcript LIKE ? OR summary LIKE ?
+      ORDER BY started_at DESC LIMIT ?
+    `).all(`%${query}%`, `%${query}%`, limit) as any[];
+    return rows.map(r => this.mapSessionRow(r));
+  }
+
+  private mapSessionRow(row: any): DBSession {
+    return {
+      id: row.id, agentId: row.agent_id, framework: row.framework,
+      startedAt: row.started_at, endedAt: row.ended_at ?? undefined,
+      transcript: row.transcript, summary: row.summary ?? undefined,
+      importance: row.importance, accessCount: row.access_count,
+      lastAccessedAt: row.last_accessed_at ?? undefined,
+      tags: JSON.parse(row.tags || '[]'),
+      extracted: !!row.extracted, flagged: !!row.flagged,
+      createdAt: row.created_at,
+    };
+  }
+
+  async addToExtractionQueue(sessionId: string, priority = 0): Promise<void> {
+    this.db.prepare(`INSERT OR REPLACE INTO extraction_queue (session_id, queued_at, priority, status, retry_count) VALUES (?, ?, ?, 'pending', 0)`).run(sessionId, Date.now(), priority);
+  }
+
+  async getExtractionQueue(limit = 10): Promise<ExtractionQueueEntry[]> {
+    const rows = this.db.prepare(`SELECT * FROM extraction_queue ORDER BY priority DESC, queued_at ASC LIMIT ?`).all(limit) as any[];
+    return rows.map(r => ({ sessionId: r.session_id, queuedAt: r.queued_at, priority: r.priority, status: r.status, retryCount: r.retry_count }));
+  }
+
+  async updateExtractionQueueStatus(sessionId: string, status: string): Promise<void> {
+    this.db.prepare(`UPDATE extraction_queue SET status = ? WHERE session_id = ?`).run(status, sessionId);
+  }
+
+  async removeFromExtractionQueue(sessionId: string): Promise<void> {
+    this.db.prepare('DELETE FROM extraction_queue WHERE session_id = ?').run(sessionId);
+  }
+
+  async addSessionFeedback(sessionId: string, agentId: string, adjustment: number, reason?: string): Promise<void> {
+    this.db.prepare(`INSERT INTO session_feedback (session_id, agent_id, adjustment, reason, created_at) VALUES (?, ?, ?, ?, ?)`).run(sessionId, agentId, adjustment, reason ?? null, Date.now());
+  }
+
+  async getSessionFeedbackHistory(sessionId: string): Promise<DBSessionFeedback[]> {
+    const rows = this.db.prepare(`SELECT * FROM session_feedback WHERE session_id = ? ORDER BY created_at DESC`).all(sessionId) as any[];
+    return rows.map(r => ({ sessionId: r.session_id, agentId: r.agent_id, adjustment: r.adjustment, reason: r.reason, createdAt: r.created_at }));
+  }
+
+  async addMemoryFeedback(key: string, agentId: string, adjustment: number, reason?: string): Promise<void> {
+    this.db.prepare(`INSERT INTO memory_feedback (key, agent_id, adjustment, reason, created_at) VALUES (?, ?, ?, ?, ?)`).run(key, agentId, adjustment, reason ?? null, Date.now());
+  }
+
+  async getMemoryFeedbackHistory(key: string): Promise<MemoryFeedback[]> {
+    const rows = this.db.prepare(`SELECT * FROM memory_feedback WHERE key = ? ORDER BY created_at DESC`).all(key) as any[];
+    return rows.map(r => ({ key: r.key, agentId: r.agent_id, adjustment: r.adjustment, reason: r.reason, createdAt: r.created_at }));
+  }
+
+  async getEvictionCandidates(memoryThreshold: number, sessionThreshold: number, limit: number): Promise<{
+    memories: Array<{key: string; importance: number; lastAccessedAt: number; accessCount: number}>;
+    sessions: Array<{id: string; importance: number; lastAccessedAt: number; accessCount: number}>;
+  }> {
+    const now = Date.now();
+    const RECENCY_WINDOW = 90 * 24 * 60 * 60 * 1000;
+    const memories = this.db.prepare(`
+      SELECT m.key, COALESCE(m.importance_score, 5.0) + COALESCE(SUM(f.adjustment), 0) AS importance,
+             COALESCE(m.last_accessed_at, m.updated_at) AS last_accessed_at,
+             COALESCE(m.access_count, 0) AS access_count
+      FROM memory m
+      LEFT JOIN memory_feedback f ON m.key = f.key
+      GROUP BY m.key
+      HAVING importance < ?
+      ORDER BY (importance * 0.5) + ((1.0 - MIN((COALESCE(m.last_accessed_at, m.updated_at) - ?), ?) / ?) * 0.3) + (LOG10(COALESCE(m.access_count, 0) + 1) / 2.0 * 0.2) ASC
+      LIMIT ?
+    `).all(memoryThreshold, now, RECENCY_WINDOW, RECENCY_WINDOW, limit) as any[];
+    const sessRows = this.db.prepare(`
+      SELECT id, importance, COALESCE(last_accessed_at, ended_at, created_at) as last_accessed_at, access_count
+      FROM sessions WHERE importance < ?
+      ORDER BY (importance * 0.5) + ((1.0 - MIN((COALESCE(last_accessed_at, ended_at, created_at) - ?), ?) / ?) * 0.3) + (LOG10(access_count + 1) / 2.0 * 0.2) ASC
+      LIMIT ?
+    `).all(sessionThreshold, now, RECENCY_WINDOW, RECENCY_WINDOW, limit) as any[];
+    return {
+      memories: memories.map(r => ({ key: r.key, importance: r.importance, lastAccessedAt: r.last_accessed_at, accessCount: r.access_count })),
+      sessions: sessRows.map(r => ({ id: r.id, importance: r.importance, lastAccessedAt: r.last_accessed_at, accessCount: r.access_count })),
+    };
+  }
 }
 
 class MySqlStorage implements DbStorage {
@@ -584,6 +827,59 @@ class MySqlStorage implements DbStorage {
         updated_at BIGINT NOT NULL,
         updated_by VARCHAR(191) NOT NULL,
         INDEX idx_memory_versions_key_version (\`key\`, version DESC)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS sessions (
+        id VARCHAR(191) PRIMARY KEY,
+        agent_id VARCHAR(191) NOT NULL,
+        framework VARCHAR(191) NOT NULL DEFAULT 'unknown',
+        started_at BIGINT NOT NULL,
+        ended_at BIGINT,
+        transcript LONGTEXT NOT NULL DEFAULT '',
+        summary LONGTEXT,
+        importance DOUBLE NOT NULL DEFAULT 5.0,
+        access_count BIGINT NOT NULL DEFAULT 0,
+        last_accessed_at BIGINT,
+        tags LONGTEXT NOT NULL DEFAULT '[]',
+        extracted TINYINT(1) NOT NULL DEFAULT 0,
+        flagged TINYINT(1) NOT NULL DEFAULT 0,
+        created_at BIGINT NOT NULL,
+        INDEX idx_sessions_agent_id (agent_id),
+        INDEX idx_sessions_started_at (started_at DESC)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS extraction_queue (
+        session_id VARCHAR(191) PRIMARY KEY,
+        queued_at BIGINT NOT NULL,
+        priority BIGINT NOT NULL DEFAULT 0,
+        status VARCHAR(50) NOT NULL DEFAULT 'pending',
+        retry_count BIGINT NOT NULL DEFAULT 0
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS session_feedback (
+        id BIGINT AUTO_INCREMENT PRIMARY KEY,
+        session_id VARCHAR(191) NOT NULL,
+        agent_id VARCHAR(191) NOT NULL,
+        adjustment DOUBLE NOT NULL,
+        reason LONGTEXT,
+        created_at BIGINT NOT NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS memory_feedback (
+        id BIGINT AUTO_INCREMENT PRIMARY KEY,
+        \`key\` VARCHAR(191) NOT NULL,
+        agent_id VARCHAR(191) NOT NULL,
+        adjustment DOUBLE NOT NULL,
+        reason LONGTEXT,
+        created_at BIGINT NOT NULL
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     `);
 
@@ -892,5 +1188,129 @@ class MySqlStorage implements DbStorage {
     if (this.pool) {
       await this.pool.end();
     }
+  }
+
+  // ─── Sessions ────────────────────────────────────────────────────────────
+
+  async setSession(session: DBSession): Promise<void> {
+    await this.pool.execute(`
+      INSERT INTO sessions
+        (id, agent_id, framework, started_at, ended_at, transcript, summary, importance, access_count, last_accessed_at, tags, extracted, flagged, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE
+        agent_id=VALUES(agent_id), framework=VALUES(framework), started_at=VALUES(started_at),
+        ended_at=VALUES(ended_at), transcript=VALUES(transcript), summary=VALUES(summary),
+        importance=VALUES(importance), access_count=VALUES(access_count),
+        last_accessed_at=VALUES(last_accessed_at), tags=VALUES(tags),
+        extracted=VALUES(extracted), flagged=VALUES(flagged)
+    `, [
+      session.id, session.agentId, session.framework, session.startedAt,
+      session.endedAt ?? null, session.transcript, session.summary ?? null,
+      session.importance, session.accessCount, session.lastAccessedAt ?? null,
+      JSON.stringify(session.tags), session.extracted ? 1 : 0, session.flagged ? 1 : 0,
+      session.createdAt
+    ]);
+  }
+
+  async getSession(id: string): Promise<DBSession | undefined> {
+    const [rows] = await this.pool.execute(`SELECT * FROM sessions WHERE id = ?`, [id]);
+    const row = (rows as any[])[0];
+    return row ? this.mapSessionRow(row) : undefined;
+  }
+
+  async getAllSessions(agentId?: string, framework?: string, limit = 50, offset = 0): Promise<DBSession[]> {
+    let sql = 'SELECT * FROM sessions';
+    const params: any[] = [];
+    if (agentId) { sql += ' WHERE agent_id = ?'; params.push(agentId); }
+    if (framework) { sql += (agentId ? ' AND' : ' WHERE') + ' framework = ?'; params.push(framework); }
+    sql += ' ORDER BY started_at DESC LIMIT ? OFFSET ?';
+    params.push(limit, offset);
+    const [rows] = await this.pool.query(sql, params);
+    return (rows as any[]).map(r => this.mapSessionRow(r));
+  }
+
+  async deleteSession(id: string): Promise<boolean> {
+    const [result]: any = await this.pool.execute(`DELETE FROM sessions WHERE id = ?`, [id]);
+    return (result?.affectedRows ?? 0) > 0;
+  }
+
+  async sessionSearch(query: string, limit = 20): Promise<DBSession[]> {
+    const [rows] = await this.pool.query(`
+      SELECT * FROM sessions WHERE transcript LIKE ? OR summary LIKE ?
+      ORDER BY started_at DESC LIMIT ?
+    `, [`%${query}%`, `%${query}%`, limit]);
+    return (rows as any[]).map(r => this.mapSessionRow(r));
+  }
+
+  private mapSessionRow(row: any): DBSession {
+    return {
+      id: row.id, agentId: row.agent_id, framework: row.framework,
+      startedAt: row.started_at, endedAt: row.ended_at ?? undefined,
+      transcript: row.transcript, summary: row.summary ?? undefined,
+      importance: row.importance, accessCount: Number(row.access_count),
+      lastAccessedAt: row.last_accessed_at ?? undefined,
+      tags: JSON.parse(row.tags || '[]'),
+      extracted: !!row.extracted, flagged: !!row.flagged,
+      createdAt: row.created_at,
+    };
+  }
+
+  async addToExtractionQueue(sessionId: string, priority = 0): Promise<void> {
+    await this.pool.execute(`INSERT INTO extraction_queue (session_id, queued_at, priority, status, retry_count) VALUES (?, ?, ?, 'pending', 0) ON DUPLICATE KEY UPDATE queued_at=VALUES(queued_at), priority=VALUES(priority)`, [sessionId, Date.now(), priority]);
+  }
+
+  async getExtractionQueue(limit = 10): Promise<ExtractionQueueEntry[]> {
+    const [rows] = await this.pool.query(`SELECT * FROM extraction_queue WHERE status = 'pending' ORDER BY priority DESC, queued_at ASC LIMIT ?`, [limit]);
+    return (rows as any[]).map(r => ({ sessionId: r.session_id, queuedAt: Number(r.queued_at), priority: Number(r.priority), status: r.status, retryCount: Number(r.retry_count) }));
+  }
+
+  async updateExtractionQueueStatus(sessionId: string, status: string): Promise<void> {
+    await this.pool.execute(`UPDATE extraction_queue SET status = ? WHERE session_id = ?`, [status, sessionId]);
+  }
+
+  async removeFromExtractionQueue(sessionId: string): Promise<void> {
+    await this.pool.execute(`DELETE FROM extraction_queue WHERE session_id = ?`, [sessionId]);
+  }
+
+  async addSessionFeedback(sessionId: string, agentId: string, adjustment: number, reason?: string): Promise<void> {
+    await this.pool.execute(`INSERT INTO session_feedback (session_id, agent_id, adjustment, reason, created_at) VALUES (?, ?, ?, ?, ?)`, [sessionId, agentId, adjustment, reason ?? null, Date.now()]);
+  }
+
+  async getSessionFeedbackHistory(sessionId: string): Promise<DBSessionFeedback[]> {
+    const [rows] = await this.pool.query(`SELECT * FROM session_feedback WHERE session_id = ? ORDER BY created_at DESC`, [sessionId]);
+    return (rows as any[]).map(r => ({ sessionId: r.session_id, agentId: r.agent_id, adjustment: Number(r.adjustment), reason: r.reason, createdAt: Number(r.created_at) }));
+  }
+
+  async addMemoryFeedback(key: string, agentId: string, adjustment: number, reason?: string): Promise<void> {
+    await this.pool.execute(`INSERT INTO memory_feedback (key, agent_id, adjustment, reason, created_at) VALUES (?, ?, ?, ?, ?)`, [key, agentId, adjustment, reason ?? null, Date.now()]);
+  }
+
+  async getMemoryFeedbackHistory(key: string): Promise<MemoryFeedback[]> {
+    const [rows] = await this.pool.query(`SELECT * FROM memory_feedback WHERE key = ? ORDER BY created_at DESC`, [key]);
+    return (rows as any[]).map(r => ({ key: r.key, agentId: r.agent_id, adjustment: Number(r.adjustment), reason: r.reason, createdAt: Number(r.created_at) }));
+  }
+
+  async getEvictionCandidates(memoryThreshold: number, sessionThreshold: number, limit: number): Promise<{
+    memories: Array<{key: string; importance: number; lastAccessedAt: number; accessCount: number}>;
+    sessions: Array<{id: string; importance: number; lastAccessedAt: number; accessCount: number}>;
+  }> {
+    const now = Date.now();
+    const RECENCY_WINDOW = 90 * 24 * 60 * 60 * 1000;
+    const [memRows]: any = await this.pool.query(`
+      SELECT \`key\`, importance, COALESCE(last_accessed_at, updated_at) as last_accessed_at, access_count
+      FROM memory WHERE importance < ?
+      ORDER BY (importance * 0.5) + ((1.0 - LEAST((COALESCE(last_accessed_at, updated_at) - ?), ?)) / ? * 0.3) + (LOG10(access_count + 1) / 2.0 * 0.2) ASC
+      LIMIT ?
+    `, [memoryThreshold, now, RECENCY_WINDOW, RECENCY_WINDOW, limit]);
+    const [sessRows]: any = await this.pool.query(`
+      SELECT id, importance, COALESCE(last_accessed_at, ended_at, created_at) as last_accessed_at, access_count
+      FROM sessions WHERE importance < ?
+      ORDER BY (importance * 0.5) + ((1.0 - LEAST((COALESCE(last_accessed_at, ended_at, created_at) - ?), ?)) / ? * 0.3) + (LOG10(access_count + 1) / 2.0 * 0.2) ASC
+      LIMIT ?
+    `, [sessionThreshold, now, RECENCY_WINDOW, RECENCY_WINDOW, limit]);
+    return {
+      memories: (memRows as any[]).map(r => ({ key: r.key, importance: r.importance, lastAccessedAt: Number(r.last_accessed_at), accessCount: Number(r.access_count) })),
+      sessions: (sessRows as any[]).map(r => ({ id: r.id, importance: r.importance, lastAccessedAt: Number(r.last_accessed_at), accessCount: Number(r.access_count) })),
+    };
   }
 }
