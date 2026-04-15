@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync } from 'fs';
 import { dirname, join } from 'path';
 import Database from 'better-sqlite3';
 import mysql from 'mysql2/promise';
-import type { Config, DBMessage, DBMemory, DBMemoryVersion, MySqlStorageConfig, StorageConfig } from './types.js';
+import type { Config, DBMessage, DBMemory, DBMemoryVersion, MySqlStorageConfig, StorageConfig, DBSession, DBSessionFeedback, ExtractionQueueEntry, MemoryFeedback } from './types.js';
 
 type LegacyDbShape = {
   messages?: DBMessage[];

@@ -9,6 +9,9 @@ import { Config } from './types.js';
 import { WSServer } from './ws_server.js';
 import { GraphStore } from './graph/store.js';
 import type { GraphNodeType } from './graph/types.js';
+import { SessionStore } from './session_store.js';
+import type { ForgettingScheduler } from './scheduler.js';
+import type { DBSession } from './types.js';
 
 export class RestServer {
   private server: http.Server | null = null;
@@ -18,14 +21,21 @@ export class RestServer {
   private config: Config;
   private wsServer: WSServer | null = null;
   private graph: GraphStore;
+  private sessionStore: SessionStore;
+  private forgettingScheduler: ForgettingScheduler | null = null;
 
-  constructor(config: Config, db: ClawDB, topics: TopicsManager, memory: MemoryPool, graph: GraphStore, wsServer?: WSServer) {
+  constructor(config: Config, db: ClawDB, topics: TopicsManager, memory: MemoryPool, graph: GraphStore, wsServer?: WSServer, sessionStore?: SessionStore) {
     this.config = config;
     this.db = db;
     this.topics = topics;
     this.memory = memory;
     this.graph = graph;
     this.wsServer = wsServer || null;
+    this.sessionStore = sessionStore ?? new SessionStore(db);
+  }
+
+  setForgettingScheduler(scheduler: ForgettingScheduler): void {
+    this.forgettingScheduler = scheduler;
   }
 
   start(): void {
@@ -858,8 +868,256 @@ const result = this.graph.findPath(from, to, maxDepth);
       return;
     }
 
+    // v1.0: Session Memory routes
+    if (path === '/sessions' || path.startsWith('/sessions/')) {
+      this.handleSessionRequest(req, res, path, method, url); return;
+    }
+
+    // v1.0: Memory eviction management
+    if (path === '/api/v1/memory/eviction' && method === 'GET') {
+      this.handleMemoryEvictionSimple(res); return;
+    }
+    if (path === '/api/v1/memory/prune') {
+      this.handleMemoryPruneSimple(req, res); return;
+    }
+
     res.writeHead(405, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'Method not allowed for this path' }));
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // v1.0: Session Memory REST Handlers
+  // ─────────────────────────────────────────────────────────────────
+
+  private async handleSessionList(res: http.ServerResponse): Promise<void> {
+    try {
+      const sessions = await this.sessionStore.listSessions();
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ sessions, count: sessions.length }));
+    } catch (e: any) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: e.message }));
+    }
+  }
+
+  private async handleSessionCreate(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+    let body = '';
+    req.on('data', (chunk: any) => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body) as Partial<DBSession>;
+        const now = Date.now();
+        const session: DBSession = {
+          id: data.id ?? uuidv4(),
+          agentId: data.agentId ?? 'unknown',
+          framework: data.framework ?? 'openclaw',
+          startedAt: data.startedAt ?? now,
+          endedAt: data.endedAt,
+          transcript: data.transcript ?? '[]',
+          summary: data.summary,
+          importance: data.importance ?? 5.0,
+          accessCount: 0,
+          tags: data.tags ?? [],
+          extracted: false,
+          flagged: false,
+          createdAt: now,
+        };
+        await this.sessionStore.registerSession(session);
+        res.writeHead(201, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, session }));
+      } catch (e: any) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    });
+  }
+
+  private async handleSessionGet(res: http.ServerResponse, id: string): Promise<void> {
+    try {
+      const session = await this.sessionStore.getSession(id);
+      if (!session) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Session not found' }));
+        return;
+      }
+      await this.sessionStore.incrementAccessCount(id);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ session }));
+    } catch (e: any) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: e.message }));
+    }
+  }
+
+  private async handleSessionUpdate(req: http.IncomingMessage, res: http.ServerResponse, id: string): Promise<void> {
+    let body = '';
+    req.on('data', (chunk: any) => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const updates = JSON.parse(body) as Partial<DBSession>;
+        await this.sessionStore.updateSession(id, updates);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true }));
+      } catch (e: any) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    });
+  }
+
+  private async handleSessionDelete(res: http.ServerResponse, id: string): Promise<void> {
+    try {
+      const deleted = await this.sessionStore.deleteSession(id);
+      res.writeHead(deleted ? 200 : 404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: deleted, id }));
+    } catch (e: any) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: e.message }));
+    }
+  }
+
+  private async handleSessionFeedback(req: http.IncomingMessage, res: http.ServerResponse, id: string): Promise<void> {
+    let body = '';
+    req.on('data', (chunk: any) => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const { adjustment, reason, agentId } = JSON.parse(body);
+        await this.sessionStore.addFeedback(id, agentId ?? 'unknown', adjustment ?? 0, reason);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true }));
+      } catch (e: any) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    });
+  }
+
+  private async handleSessionFlag(req: http.IncomingMessage, res: http.ServerResponse, id: string): Promise<void> {
+    let body = '';
+    req.on('data', (chunk: any) => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const { flagged } = JSON.parse(body);
+        await this.sessionStore.flagSession(id, !!flagged);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true }));
+      } catch (e: any) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    });
+  }
+
+  private async handleSessionSearch(res: http.ServerResponse, url: URL): Promise<void> {
+    const q = url.searchParams.get('q') ?? '';
+    const limit = Math.min(parseInt(url.searchParams.get('limit') ?? '20'), 50);
+    try {
+      const sessions = await this.sessionStore.searchSessions(q, limit);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ sessions, count: sessions.length, query: q }));
+    } catch (e: any) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: e.message }));
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // v1.0: Memory Eviction Handlers
+  // ─────────────────────────────────────────────────────────────────
+
+  private async handleMemoryEviction(res: http.ServerResponse): Promise<void> {
+    try {
+      const candidates = await this.db.getEvictionCandidates(3.0, 3.0, 20);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ sessions: candidates.sessions, memories: candidates.memories, count: candidates.sessions.length + candidates.memories.length }));
+    } catch (e: any) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: e.message }));
+    }
+  }
+
+  private async handleMemoryPruneStatus(res: http.ServerResponse): Promise<void> {
+    const status = this.forgettingScheduler?.getStatus() ?? { running: false, config: null, nextDaily: null, nextWeekly: null };
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ scheduler: status }));
+  }
+
+  private async handleMemoryPrune(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+    if (!this.forgettingScheduler) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'ForgettingScheduler not configured' }));
+      return;
+    }
+    let body = '';
+    req.on('data', (chunk: any) => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const result = await this.forgettingScheduler!.triggerEviction();
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, evicted: result }));
+      } catch (e: any) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // v1.0: Session Memory Simple Handlers
+  // ─────────────────────────────────────────────────────────────────
+
+  private handleSessionRequest(req: http.IncomingMessage, res: http.ServerResponse, path: string, method: string, url: URL): void {
+    if (path === '/sessions') {
+      if (method === 'GET') { this.handleSessionList(res); return; }
+      if (method === 'POST') { this.handleSessionCreate(req, res); return; }
+    } else {
+      const id = decodeURIComponent(path.slice(9));
+      if (id === 'search' && method === 'GET') { this.handleSessionSearch(res, url); return; }
+      if (method === 'GET') { this.handleSessionGet(res, id); return; }
+      if (method === 'PUT') { this.handleSessionUpdate(req, res, id); return; }
+      if (method === 'DELETE') { this.handleSessionDelete(res, id); return; }
+      if (method === 'POST') {
+        const subAction = url.searchParams.get('action');
+        if (subAction === 'feedback') { this.handleSessionFeedback(req, res, id); return; }
+        if (subAction === 'flag') { this.handleSessionFlag(req, res, id); return; }
+      }
+    }
+    res.writeHead(405, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Method not allowed for /sessions' }));
+  }
+
+  private async handleMemoryEvictionSimple(res: http.ServerResponse): Promise<void> {
+    try {
+      this.db.getEvictionCandidates(3.0, 3.0, 20).then(candidates => {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ sessions: candidates.sessions, memories: candidates.memories, count: candidates.sessions.length + candidates.memories.length }));
+      }).catch((e: any) => {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message }));
+      });
+    } catch (e: any) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: e.message }));
+    }
+  }
+
+  private async handleMemoryPruneSimple(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+    if (!this.forgettingScheduler) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'ForgettingScheduler not configured' }));
+      return;
+    }
+    let body = '';
+    req.on('data', (chunk: any) => { body += chunk; });
+    req.on('end', () => {
+      this.forgettingScheduler!.triggerEviction().then(result => {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, evicted: result }));
+      }).catch((e: any) => {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message }));
+      });
+    });
   }
 
   // ─────────────────────────────────────────────────────────────────

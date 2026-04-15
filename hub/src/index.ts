@@ -3,6 +3,8 @@ import { RestServer } from './rest_server.js';
 import { ClawDB } from './db.js';
 import { Config } from './types.js';
 import { GraphStore } from './graph/store.js';
+import { SessionStore } from './session_store.js';
+import { ForgettingScheduler } from './scheduler.js';
 import { readFileSync, existsSync } from 'fs';
 import { join, extname } from 'path';
 import http from 'http';
@@ -100,6 +102,12 @@ async function main() {
   const restServer = new RestServer(config, db, wsServer.getTopicsManager(), wsServer.getMemoryPool(), graphStore, wsServer);
   restServer.start();
 
+  // v1.0: Initialize and start ForgettingScheduler
+  const sessionStore = new SessionStore(db);
+  const forgettingScheduler = new ForgettingScheduler(db, sessionStore, null);
+  forgettingScheduler.start();
+  restServer.setForgettingScheduler(forgettingScheduler);
+
   // v1.0: Start Web UI static file server on port 8084
   const uiPort = 8084;
   const publicDir = join(process.cwd(), 'public');
@@ -136,6 +144,7 @@ async function main() {
   // Graceful shutdown
   const shutdown = () => {
     console.log('[WoClaw] Shutting down...');
+    forgettingScheduler.stop();
     restServer.close();
     wsServer.close();
     void db.close().finally(() => {
