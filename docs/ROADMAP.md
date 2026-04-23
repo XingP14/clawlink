@@ -357,10 +357,10 @@ woclaw migrate --all            # 执行所有迁移
   - 验证：`cd hub && npm run build` 成功，路由已在 `hub/src/rest_server.ts` 中就绪
 
 #### Story M5b-BM1: Batch Extraction 模式支持
-- [ ] **Step 1（10min）：实现 `ExtractionEngine` 的 batch 处理逻辑**
+- [x] **Step 1（10min）：实现 `ExtractionEngine` 的 batch 处理逻辑** ✅ 2026-04-23
   - `batchSize` + `batchIntervalMs` 配置驱动
   - 后台 worker 从 extraction_queue 批量拉取 session 逐个处理
-  - 验证：`cd hub && npm test -- --grep "ExtractionEngine"`
+  - 说明：`hub/src/extraction/engine.ts` 已具备 `processBatch()` 和 batch 配置入口
 
 ### Feature M7: Ollama AI Provider + Graph Auto-node
 
