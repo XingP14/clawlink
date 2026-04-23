@@ -236,7 +236,7 @@ woclaw migrate --all            # 执行所有迁移
   - 验证：`cd hub && npm run build` 无报错
 
 #### Story M2-DB2: Session CRUD 方法
-- [ ] **Step 1（10min）：在 `ClawDB` 类追加 Session CRUD 方法**
+- [x] **Step 1（10min）：在 `ClawDB` 类追加 Session CRUD 方法** ✅ 2026-04-23
   - `setSession`, `getSession`, `getAllSessions`, `deleteSession`, `sessionSearch`, `mapSessionRow`
   - 验证：`cd hub && npm run build`
 
