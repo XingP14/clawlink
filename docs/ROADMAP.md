@@ -318,7 +318,7 @@ woclaw migrate --all            # 执行所有迁移
   - 从环境变量/配置加载 ForgettingConfig
   - Build 验证
 
-- [ ] **Step 2（10min）：在 `rest_server.ts` 注册 prune 路由**
+- [x] **Step 2（10min）：在 `rest_server.ts` 注册 prune 路由** ✅ 2026-04-23
   - `POST /memory/prune` — 触发遗忘执行
   - `GET /memory/prune/status` — 查询上次运行状态
   - 验证：`cd hub && npm test` 全部通过
