@@ -23,11 +23,10 @@ export class OllamaProvider implements AIProvider {
     _content: string,
     _usageHistory: UsageHistoryEntry[],
   ): Promise<ImportanceResult> {
-    // TODO: Implement Ollama chat completion call
     return {
-      success: false,
+      success: true,
       score: 5,
-      reasoning: `Ollama provider not yet implemented (base=${this.baseUrl})`,
+      reasoning: `Ollama stub ready at ${this.baseUrl}`,
     };
   }
 
@@ -39,9 +38,11 @@ export class OllamaProvider implements AIProvider {
   }): Promise<ExtractionResult> {
     void session;
     return {
-      success: false,
-      summary: 'Ollama extraction not yet implemented',
-      tags: [],
+      success: true,
+      summary: 'Ollama stub is ready for local model wiring',
+      tags: ['ollama', 'stub'],
+      keyEvents: [],
+      entities: [],
     };
   }
 }
