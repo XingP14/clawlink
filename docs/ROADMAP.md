@@ -249,11 +249,11 @@ woclaw migrate --all            # 执行所有迁移
 ### Feature M3: Session Store 引擎
 
 #### Story M3-SS1: SessionStore 核心实现
-- [ ] **Step 1（10min）：编写 `hub/src/session_store.ts`**
+- [x] **Step 1（10min）：编写 `hub/src/session_store.ts`** ✅ 2026-04-23
   - `SessionStore` 类：方法 `registerSession`, `updateSession`, `getSession`, `listSessions`, `deleteSession`, `searchSessions`, `flagSession`, `markExtracted`, `incrementAccessCount`, `addFeedback`
   - Build 验证：`cd hub && npm run build`
 
-- [ ] **Step 2（10min）：编写 `hub/test/session_store.test.ts`**
+- [x] **Step 2（10min）：编写 `hub/test/session_store.test.ts`** ✅ 2026-04-23
   - 6 个测试用例覆盖注册、更新、列表、搜索、flag、feedback
   - 运行：`cd hub && npm test -- --grep "SessionStore"`
 
