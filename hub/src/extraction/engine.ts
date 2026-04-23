@@ -31,11 +31,20 @@ export function createExtractionProvider(config: ExtractionConfig = {}): AIProvi
 }
 
 export function createExtractionEngine(config: ExtractionConfig = {}): ExtractionEngine {
-  return new ExtractionEngine(createExtractionProvider(config));
+  return new ExtractionEngine(createExtractionProvider(config), config);
 }
 
 export class ExtractionEngine {
-  constructor(private provider: AIProvider) {}
+  private batchSize: number;
+  private batchIntervalMs: number;
+
+  constructor(
+    private provider: AIProvider,
+    config: Partial<ExtractionConfig> = {},
+  ) {
+    this.batchSize = Math.max(1, config.batchSize ?? 10);
+    this.batchIntervalMs = Math.max(0, config.batchIntervalMs ?? 1000);
+  }
 
   /**
    * Score a memory's importance.
@@ -60,6 +69,27 @@ export class ExtractionEngine {
     tags?: string[];
   }): Promise<ExtractionResult> {
     return this.provider.extractSession(session);
+  }
+
+  /**
+   * Process queued items in batch mode with simple pacing.
+   */
+  async processBatch<T>(
+    queue: T[],
+    worker: (item: T) => Promise<void>,
+  ): Promise<number> {
+    let processed = 0;
+
+    for (let i = 0; i < queue.length && processed < this.batchSize; i++) {
+      if (processed > 0 && this.batchIntervalMs > 0) {
+        await new Promise((resolve) => setTimeout(resolve, this.batchIntervalMs));
+      }
+
+      await worker(queue[i]);
+      processed++;
+    }
+
+    return processed;
   }
 
   /**

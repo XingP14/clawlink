@@ -120,6 +120,24 @@ describe('ExtractionEngine.rankMemories', () => {
   });
 });
 
+// ─── Test 4: ExtractionEngine.processBatch ───────────────────────────────────
+
+describe('ExtractionEngine.processBatch', () => {
+  it('should process items up to batch size with pacing', async () => {
+    vi.useFakeTimers();
+    const engine = new ExtractionEngine({} as AIProvider, { batchSize: 2, batchIntervalMs: 100 });
+    const worker = vi.fn(async () => undefined);
+
+    const promise = engine.processBatch(['a', 'b', 'c'], worker);
+    await vi.runAllTimersAsync();
+    const processed = await promise;
+
+    expect(processed).toBe(2);
+    expect(worker).toHaveBeenCalledTimes(2);
+    vi.useRealTimers();
+  });
+});
+
 // ─── Test 4: OpenAIProvider — successful scoring ─────────────────────────────
 
 describe('OpenAIProvider.scoreMemory', () => {
