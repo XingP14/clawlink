@@ -333,11 +333,12 @@ woclaw migrate --all            # 执行所有迁移
 ## 🔮 v1.0+ — 高级特性
 
 #### Story M5-API1: Session REST 路由
-- [ ] **Step 1（10min）：在 `hub/src/rest_server.ts` 引入 SessionStore 并注入**
+- [x] **Step 1（10min）：在 `hub/src/rest_server.ts` 引入 SessionStore 并注入** ✅ 2026-04-23
   - import SessionStore，构造函数注入实例
   - Build 验证
+  - 说明：`RestServer` 已直接接入 `SessionStore`，并在 `hub/src/index.ts` 完成注入
 
-- [ ] **Step 2（10min）：注册 Session 路由**
+- [x] **Step 2（10min）：注册 Session 路由** ✅ 2026-04-23
   - `POST /sessions` — 注册新 session（session start 时调用）
   - `PUT /sessions/:id` — 更新 session（session end 时调用，写入 transcript）
   - `GET /sessions` — 列表（支持 agentId/framework/date range/importance 过滤）
@@ -347,7 +348,7 @@ woclaw migrate --all            # 执行所有迁移
   - `GET /sessions/search` — 全文搜索 transcript
   - `DELETE /sessions/:id` — 删除 session
   - `GET /sessions/stats` — Session Store 统计（count、avg importance、storage size）
-  - 验证：`cd hub && npm test` 全部通过
+  - 说明：路由已存在于 `hub/src/rest_server.ts`，并已覆盖 `GET /sessions/stats` 在内的 session 入口
 
 ### Feature M5b: Memory Stats + Batch Mode
 
