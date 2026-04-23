@@ -6,24 +6,32 @@
  * DB layer to score, summarize, and rank memories.
  */
 
-import { AnthropicProvider } from './providers/anthropic.js';
-import { OllamaProvider } from './providers/ollama.js';
-import { OpenAIProvider } from './providers/openai.js';
+import { createRequire } from 'module';
 import type { AIProvider, ExtractionConfig } from './types.js';
 import type { ImportanceResult, ExtractionResult, RerankedMemory } from './types.js';
+
+const require = createRequire(import.meta.url);
+
+function loadProvider(provider: NonNullable<ExtractionConfig['provider']>, config: ExtractionConfig): AIProvider {
+  switch (provider) {
+    case 'anthropic':
+      return new (require('./providers/anthropic.js').AnthropicProvider)(config.apiKey);
+    case 'ollama':
+      return new (require('./providers/ollama.js').OllamaProvider)(config.baseUrl);
+    case 'openai':
+    default:
+      return new (require('./providers/openai.js').OpenAIProvider)(config.apiKey);
+  }
+}
 
 export function createExtractionProvider(config: ExtractionConfig = {}): AIProvider {
   const provider = config.provider ?? 'openai';
 
-  switch (provider) {
-    case 'anthropic':
-      return new AnthropicProvider(config.apiKey);
-    case 'ollama':
-      return new OllamaProvider(config.baseUrl);
-    case 'openai':
-    default:
-      return new OpenAIProvider(config.apiKey);
-  }
+  return loadProvider(provider, config);
+}
+
+export function createExtractionEngine(config: ExtractionConfig = {}): ExtractionEngine {
+  return new ExtractionEngine(createExtractionProvider(config));
 }
 
 export class ExtractionEngine {
