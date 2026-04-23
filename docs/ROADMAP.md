@@ -273,7 +273,7 @@ woclaw migrate --all            # 执行所有迁移
   - 验证：`cd hub && npm run build`
 
 #### Story M4-AI3: Anthropic / Ollama Provider Stub
-- [ ] **Step 1（10min）：编写 `hub/src/extraction/providers/anthropic.ts`**
+- [x] **Step 1（10min）：编写 `hub/src/extraction/providers/anthropic.ts`** ✅ 2026-04-23
   - Stub 实现，返回默认 5.0 评分
   - Build 验证
 
