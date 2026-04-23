@@ -314,7 +314,7 @@ woclaw migrate --all            # 执行所有迁移
   - Build 验证
 
 #### Story M6-FG2: Hub 集成 + REST 端点
-- [ ] **Step 1（10min）：在 `hub/src/index.ts` 引入并实例化 ForgettingScheduler**
+- [x] **Step 1（10min）：在 `hub/src/index.ts` 引入并实例化 ForgettingScheduler** ✅ 2026-04-23
   - 从环境变量/配置加载 ForgettingConfig
   - Build 验证
 
