@@ -277,12 +277,12 @@ woclaw migrate --all            # 执行所有迁移
   - Stub 实现，返回默认 5.0 评分
   - Build 验证
 
-- [ ] **Step 2（10min）：编写 `hub/src/extraction/providers/ollama.ts`**
-  - Stub 实现，返回默认 5.0 评分
+- [x] **Step 2（10min）：编写 `hub/src/extraction/providers/ollama.ts`** ✅ 2026-04-23
+  - Stub 实现，返回默认 5.0 评分，支持 `OLLAMA_BASE_URL`
   - Build 验证
 
 #### Story M4-AI4: 提取引擎测试
-- [ ] **Step 1（10min）：编写 `hub/test/extraction_engine.test.ts`**
+- [x] **Step 1（10min）：编写 `hub/test/extraction_engine.test.ts`** ✅ 2026-04-23
   - Mock-based 测试验证接口契约
   - `cd hub && npm test -- --grep "ExtractionEngine"` 全部 PASS
 
