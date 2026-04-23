@@ -240,7 +240,7 @@ woclaw migrate --all            # 执行所有迁移
   - `setSession`, `getSession`, `getAllSessions`, `deleteSession`, `sessionSearch`, `mapSessionRow`
   - 验证：`cd hub && npm run build`
 
-- [ ] **Step 2（10min）：追加 Extraction Queue + Feedback + Eviction 方法**
+- [x] **Step 2（10min）：追加 Extraction Queue + Feedback + Eviction 方法** ✅ 2026-04-23
   - `addToExtractionQueue`, `getExtractionQueue`, `updateExtractionQueueStatus`, `removeFromExtractionQueue`
   - `addSessionFeedback`, `getSessionFeedbackHistory`, `addMemoryFeedback`, `getMemoryFeedbackHistory`
   - `getEvictionCandidates`（带重要性/访问频率/时间衰减公式）
