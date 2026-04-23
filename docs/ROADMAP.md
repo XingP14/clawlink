@@ -371,7 +371,7 @@ woclaw migrate --all            # 执行所有迁移
   - 验证：本地 Ollama 运行 + `cd hub && npm run build`
 
 #### Story M7-GN1: 提取引擎 → Graph Memory 自动关联
-- [ ] **Step 1（10min）：Session 提取完成后自动创建 Graph 节点和 entity 边**
+- [x] **Step 1（10min）：Session 提取完成后自动创建 Graph 节点和 entity 边** ✅ 2026-04-23
   - `ExtractionEngine.extractSession()` 完成后触发 `syncMemoryNode()`
   - 自动为 summary/topics/importantFacts 创建 Memory 节点
   - 自动创建 memory → agent、memory → topic 的 entity 边
