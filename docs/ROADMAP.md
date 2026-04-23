@@ -260,7 +260,7 @@ woclaw migrate --all            # 执行所有迁移
 ### Feature M4: AI 提取引擎
 
 #### Story M4-AI1: 提取引擎核心架构
-- [ ] **Step 1（10min）：编写 `hub/src/extraction/engine.ts`**
+- [x] **Step 1（10min）：编写 `hub/src/extraction/engine.ts`** ✅ 2026-04-23
   - `AIProvider` 接口定义
   - `ExtractionEngine` 类：根据 config 动态 `require()` 加载 provider
   - Build 验证：`cd hub && npm run build`
