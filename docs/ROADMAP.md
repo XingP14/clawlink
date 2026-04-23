@@ -266,7 +266,7 @@ woclaw migrate --all            # 执行所有迁移
   - Build 验证：`cd hub && npm run build`
 
 #### Story M4-AI2: OpenAI Provider 实现
-- [ ] **Step 1（10min）：编写 `hub/src/extraction/providers/openai.ts`**
+- [x] **Step 1（10min）：编写 `hub/src/extraction/providers/openai.ts`** ✅ 2026-04-23
   - `OpenAIProvider` 实现 `AIProvider` 接口
   - `scoreMemory()` — 调用 OpenAI Chat API（JSON mode）返回重要性评分
   - `extractSession()` — 从 session transcript 提取 summary/keyDecisions/importantFacts/preferences/filesModified/topics/suggestedTags
