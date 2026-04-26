@@ -370,6 +370,7 @@ woclaw migrate --all            # 执行所有迁移
   - 实现 `scoreMemory()` 和 `extractSession()` 调用本地 Ollama API
   - 使用 `OLLAMA_BASE_URL` 环境变量（默认 `http://localhost:11434`）
   - 验证：本地 Ollama 运行 + `cd hub && npm run build`
+  - ✅ OllamaProvider 非 Stub：完整调用 `/api/chat`，支持 JSON mode 解析
 
 #### Story M7-GN1: 提取引擎 → Graph Memory 自动关联
 - [x] **Step 1（10min）：Session 提取完成后自动创建 Graph 节点和 entity 边** ✅ 2026-04-23
